@@ -43,7 +43,7 @@ function Controls({ granted }) {
 
   return granted
     ? <DeviceOrientationControls />
-    : <OrbitControls target={[0, 0.5, 0]} maxPolarAngle={Math.PI / 2 - 0.05} />
+    : <OrbitControls target={[0, 1.6, 0]} maxPolarAngle={Math.PI} />
 }
 
 export default function App() {
