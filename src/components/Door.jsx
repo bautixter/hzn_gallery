@@ -2,26 +2,48 @@ import { useRef, useState, useMemo, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations, Html } from '@react-three/drei'
 import { MathUtils, LoopOnce } from 'three'
-import { DOOR_RADIUS, SHOW_THRESHOLD, _camDir, _toDoor } from '../config'
+import { DOOR_RADIUS, SHOW_THRESHOLD, _camDir, _toDoor, easeInOut } from '../config'
 
-export default function Door({ angle, data }) {
+const SLIDE_SPEED = 0.4  // tune: higher = faster charge toward camera
+const OVERSHOOT   = 2.5  // >1 makes the door travel past the camera; 1/OVERSHOOT is the p where it crosses through
+
+export default function Door({ angle, data, onActivate }) {
   const { scene, animations } = useGLTF('/models/door.glb')
-  const clonedScene = useMemo(() => scene.clone(true), [scene])
+
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true)
+    clone.traverse(child => {
+      if (child.isMesh && child.name === 'stencil') child.visible = false
+    })
+    return clone
+  }, [scene])
 
   const groupRef = useRef()
   const { actions } = useAnimations(animations, groupRef)
 
-  const y = useRef(-3)
+  const isSliding     = useRef(false)
+  const slideProgress = useRef(0)
+  const hasActivated  = useRef(false)
+
+  const y         = useRef(-3)
   const isVisible = useRef(false)
   const [visible, setVisible] = useState(false)
 
   const handleClick = useCallback(() => {
+    if (isSliding.current) return
+
     const action = actions['puerta_abrir']
-    if (!action) return
-    action.reset()
-    action.setLoop(LoopOnce, 1)
-    action.clampWhenFinished = true
-    action.play()
+    if (action) {
+      action.reset()
+      action.setLoop(LoopOnce, 1)
+      action.clampWhenFinished = true
+      action.play()
+    }
+
+    setVisible(false)
+    isSliding.current    = true
+    slideProgress.current = 0
+    hasActivated.current  = false
   }, [actions])
 
   useFrame(({ camera }, delta) => {
@@ -29,12 +51,27 @@ export default function Door({ angle, data }) {
     _toDoor.set(Math.sin(angle), 0, Math.cos(angle))
     const dot = _camDir.dot(_toDoor)
 
-    const t = MathUtils.smoothstep(dot, 0.7, 0.97)
-    const target = MathUtils.lerp(-3, 0, t)
-
-    const speed = 3
-    y.current = MathUtils.lerp(y.current, target, 1 - Math.exp(-speed * delta))
+    // Y spring — always runs; targets 0 while sliding so door is fully raised
+    const t       = MathUtils.smoothstep(dot, 0.7, 0.97)
+    const yTarget = isSliding.current ? 0 : MathUtils.lerp(-3, 0, t)
+    y.current = MathUtils.lerp(y.current, yTarget, 1 - Math.exp(-3 * delta))
     groupRef.current.position.y = y.current
+
+    if (isSliding.current) {
+      slideProgress.current = Math.min(slideProgress.current + delta * SLIDE_SPEED, 1)
+      const p = easeInOut(slideProgress.current)
+
+      // XZ slides toward and through the camera; Y left to the spring above
+      groupRef.current.position.x = Math.sin(angle) * DOOR_RADIUS * (1 - p * OVERSHOOT)
+      groupRef.current.position.z = Math.cos(angle) * DOOR_RADIUS * (1 - p * OVERSHOOT)
+
+      // Fire when the door crosses through the camera (position = 0), i.e. p = 1/OVERSHOOT
+      if (!hasActivated.current && p >= 1 / OVERSHOOT) {
+        hasActivated.current = true
+        onActivate()
+      }
+      return
+    }
 
     const shouldShow = t > SHOW_THRESHOLD
     if (shouldShow !== isVisible.current) {
