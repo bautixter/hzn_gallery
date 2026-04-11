@@ -1,100 +1,33 @@
 import { useRef, useState, useMemo, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { useGLTF, MeshPortalMaterial, useAnimations, Html } from '@react-three/drei'
-import { MathUtils, Matrix4, Quaternion, Vector3, LoopOnce } from 'three'
-import { DOOR_RADIUS, SHOW_THRESHOLD, PORTAL_ACTIVATE_DOT, PORTAL_DEACTIVATE_DOT, TRANSITION_SPEED, easeInOut, _camDir, _toDoor } from '../config'
-import RoomPortalContent from './RoomPortalContent'
+import { useGLTF, useAnimations, Html } from '@react-three/drei'
+import { MathUtils, LoopOnce } from 'three'
+import { DOOR_RADIUS, SHOW_THRESHOLD, _camDir, _toDoor } from '../config'
 
-export default function Door({ angle, data, onActivate }) {
+export default function Door({ angle, data }) {
   const { scene, animations } = useGLTF('/models/door.glb')
-
   const clonedScene = useMemo(() => scene.clone(true), [scene])
-
-  const portalMeshData = useMemo(() => {
-    let stencil = null
-    clonedScene.traverse(child => {
-      if (child.isMesh && child.name === 'stencil') stencil = child
-    })
-    if (!stencil) return null
-
-    stencil.visible = false
-
-    clonedScene.updateMatrixWorld(true)
-    const invRoot = new Matrix4().copy(clonedScene.matrixWorld).invert()
-    const relMat = stencil.matrixWorld.clone().premultiply(invRoot)
-
-    const position = new Vector3()
-    const quaternion = new Quaternion()
-    const scale = new Vector3()
-    relMat.decompose(position, quaternion, scale)
-
-    return { geometry: stencil.geometry, position, quaternion, scale }
-  }, [clonedScene])
 
   const groupRef = useRef()
   const { actions } = useAnimations(animations, groupRef)
 
-  const portalMaterialRef = useRef()
-  const isTransitioning = useRef(false)
-  const transitionProgress = useRef(0)
-  const hasActivated = useRef(false)
-
   const y = useRef(-3)
   const isVisible = useRef(false)
   const [visible, setVisible] = useState(false)
-  const portalActiveRef = useRef(false)
-  const [portalActive, setPortalActive] = useState(false)
 
   const handleClick = useCallback(() => {
-    if (isTransitioning.current) return
-
     const action = actions['puerta_abrir']
-    if (action) {
-      action.reset()
-      action.setLoop(LoopOnce, 1)
-      action.clampWhenFinished = true
-      action.play()
-    }
-
-    if (!portalActiveRef.current) {
-      portalActiveRef.current = true
-      setPortalActive(true)
-    }
-    setVisible(false)
-    isTransitioning.current = true
-    transitionProgress.current = 0
-    hasActivated.current = false
+    if (!action) return
+    action.reset()
+    action.setLoop(LoopOnce, 1)
+    action.clampWhenFinished = true
+    action.play()
   }, [actions])
 
   useFrame(({ camera }, delta) => {
     camera.getWorldDirection(_camDir)
     _toDoor.set(Math.sin(angle), 0, Math.cos(angle))
     const dot = _camDir.dot(_toDoor)
-
-    if (isTransitioning.current) {
-      transitionProgress.current = Math.min(
-        transitionProgress.current + delta * TRANSITION_SPEED,
-        1
-      )
-      const p = easeInOut(transitionProgress.current)
-
-      groupRef.current.position.set(
-        Math.sin(angle) * DOOR_RADIUS * (1 - p * 1.08),
-        0,
-        Math.cos(angle) * DOOR_RADIUS * (1 - p * 1.08)
-      )
-
-      if (portalMaterialRef.current) {
-        portalMaterialRef.current.blend = p
-      }
-
-      if (!hasActivated.current && p >= 1 / 1.08) {
-        hasActivated.current = true
-        onActivate()
-      }
-
-      return
-    }
 
     const t = MathUtils.smoothstep(dot, 0.7, 0.97)
     const target = MathUtils.lerp(-3, 0, t)
@@ -108,14 +41,6 @@ export default function Door({ angle, data, onActivate }) {
       isVisible.current = shouldShow
       setVisible(shouldShow)
     }
-
-    if (!portalActiveRef.current && dot > PORTAL_ACTIVATE_DOT) {
-      portalActiveRef.current = true
-      setPortalActive(true)
-    } else if (portalActiveRef.current && dot < PORTAL_DEACTIVATE_DOT) {
-      portalActiveRef.current = false
-      setPortalActive(false)
-    }
   })
 
   return (
@@ -125,20 +50,6 @@ export default function Door({ angle, data, onActivate }) {
       rotation={[0, angle + Math.PI, 0]}
     >
       <primitive object={clonedScene} onClick={handleClick} />
-
-      {portalMeshData && portalActive && (
-        <mesh
-          geometry={portalMeshData.geometry}
-          position={portalMeshData.position}
-          quaternion={portalMeshData.quaternion}
-          scale={portalMeshData.scale}
-          onClick={handleClick}
-        >
-          <MeshPortalMaterial ref={portalMaterialRef} resolution={512}>
-            <RoomPortalContent />
-          </MeshPortalMaterial>
-        </mesh>
-      )}
 
       <Html
         position={[0.8, 2.5, 0]}
