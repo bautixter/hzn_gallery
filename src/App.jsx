@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls, DeviceOrientationControls } from '@react-three/drei'
 import Scene from './Scene'
@@ -49,15 +49,43 @@ function Controls({ granted }) {
 export default function App() {
   const { supported, granted, requestPermission } = useDeviceOrientation()
 
+  // flashKey increments on each blink; the key prop remounts the div,
+  // restarting the CSS animation cleanly even if triggered back-to-back.
+  const [flashKey, setFlashKey] = useState(0)
+  const triggerFlash = useCallback(() => setFlashKey(k => k + 1), [])
+
   return (
     <>
+      <style>{`
+        @keyframes fadeBlack {
+          0%   { opacity: 0; }
+          45%  { opacity: 1; }
+          55%  { opacity: 1; }
+          100% { opacity: 0; }
+        }
+      `}</style>
+
       <Canvas
         camera={{ position: [0, 1.6, 3], fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene />
+        <Scene onFlash={triggerFlash} />
         <Controls granted={granted} />
       </Canvas>
+
+      {/* White blink overlay — instant on, quick fade out */}
+      {flashKey > 0 && (
+        <div
+          key={flashKey}
+          style={{
+            position: 'fixed', inset: 0,
+            background: '#000',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            animation: 'fadeBlack 0.8s ease-in-out forwards',
+          }}
+        />
+      )}
 
       {supported && !granted && typeof DeviceOrientationEvent.requestPermission === 'function' && (
         <button
