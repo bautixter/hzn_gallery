@@ -49,18 +49,28 @@ function Controls({ granted }) {
 export default function App() {
   const { supported, granted, requestPermission } = useDeviceOrientation()
 
-  // flashKey increments on each blink; the key prop remounts the div,
-  // restarting the CSS animation cleanly even if triggered back-to-back.
   const [flashKey, setFlashKey] = useState(0)
   const triggerFlash = useCallback(() => setFlashKey(k => k + 1), [])
+
+  const [activePortal, setActivePortal] = useState(null)
+
+  const handleActivate = useCallback((i) => {
+    triggerFlash()
+    setTimeout(() => setActivePortal(i), 400)
+  }, [triggerFlash])
+
+  const handleBack = useCallback(() => {
+    triggerFlash()
+    setTimeout(() => setActivePortal(null), 400)
+  }, [triggerFlash])
 
   return (
     <>
       <style>{`
         @keyframes fadeBlack {
           0%   { opacity: 0; }
-          45%  { opacity: 1; }
-          55%  { opacity: 1; }
+          35%  { opacity: 1; }
+          65%  { opacity: 1; }
           100% { opacity: 0; }
         }
       `}</style>
@@ -69,11 +79,10 @@ export default function App() {
         camera={{ position: [0, 1.6, 3], fov: 50 }}
         gl={{ antialias: true }}
       >
-        <Scene onFlash={triggerFlash} />
+        <Scene activePortal={activePortal} onActivate={handleActivate} />
         <Controls granted={granted} />
       </Canvas>
 
-      {/* White blink overlay — instant on, quick fade out */}
       {flashKey > 0 && (
         <div
           key={flashKey}
@@ -85,6 +94,24 @@ export default function App() {
             animation: 'fadeBlack 0.8s ease-in-out forwards',
           }}
         />
+      )}
+
+      {activePortal !== null && (
+        <button
+          onClick={handleBack}
+          style={{
+            position: 'fixed', top: 24, left: 24,
+            padding: '10px 20px',
+            background: 'rgba(0,0,0,0.35)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: 8, fontSize: 15, cursor: 'pointer',
+            color: 'rgba(255,255,255,0.85)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 10,
+          }}
+        >
+          ← Back
+        </button>
       )}
 
       {supported && !granted && typeof DeviceOrientationEvent.requestPermission === 'function' && (

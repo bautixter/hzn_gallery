@@ -7,8 +7,8 @@ import { DOOR_RADIUS, SHOW_THRESHOLD, _camDir, _toDoor, easeInOut } from '../con
 const SLIDE_SPEED = 0.4  // tune: higher = faster charge toward camera
 const OVERSHOOT   = 2.5  // >1 makes the door travel past the camera; 1/OVERSHOOT is the p where it crosses through
 
-export default function Door({ angle, data, onActivate }) {
-  const { scene, animations } = useGLTF('/models/door.glb')
+export default function Door({ angle, data, model = '/models/door.glb', onActivate }) {
+  const { scene, animations } = useGLTF(model)
 
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true)

@@ -11,6 +11,7 @@ export default function Doors({ activePortal, onActivate }) {
         key={i}
         angle={angle}
         data={DOOR_DATA[i]}
+        model={DOOR_DATA[i].model}
         onActivate={() => onActivate(i)}
       />
     )
