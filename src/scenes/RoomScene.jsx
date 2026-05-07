@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
+import { asset } from '../utils/asset'
 
-export default function RoomScene({ model = '/models/room.glb' }) {
+export default function RoomScene({ model }) {
+  if (!model) model = asset('/models/room.glb')
   const { scene } = useGLTF(model)
   const clone = useMemo(() => scene.clone(true), [scene])
   return (

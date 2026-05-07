@@ -1,13 +1,15 @@
 import { useRef, useState, useMemo, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations, Html } from '@react-three/drei'
+import { asset } from '../utils/asset'
 import { MathUtils, LoopOnce } from 'three'
 import { DOOR_RADIUS, SHOW_THRESHOLD, _camDir, _toDoor, easeInOut } from '../config'
 
 const SLIDE_SPEED = 0.4  // tune: higher = faster charge toward camera
 const OVERSHOOT   = 2.5  // >1 makes the door travel past the camera; 1/OVERSHOOT is the p where it crosses through
 
-export default function Door({ angle, data, model = '/models/door.glb', onActivate }) {
+export default function Door({ angle, data, model, onActivate }) {
+  if (!model) model = asset('/models/door.glb')
   const { scene, animations } = useGLTF(model)
 
   const clonedScene = useMemo(() => {

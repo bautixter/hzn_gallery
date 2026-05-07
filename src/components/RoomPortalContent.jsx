@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
+import { asset } from '../utils/asset'
 
 export default function RoomPortalContent() {
-  const { scene } = useGLTF('/models/room.glb')
+  const { scene } = useGLTF(asset('/models/room.glb'))
   const clone = useMemo(() => scene.clone(true), [scene])
   return (
     <>
