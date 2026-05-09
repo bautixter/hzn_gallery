@@ -4,18 +4,20 @@ import HazeDome from './components/HazeDome'
 import Floor from './components/Floor'
 import Doors from './components/Doors'
 import { DOOR_DATA } from './data/doorData'
-import { SCENE_TYPES } from './scenes/registry'
+import { ROOM_TYPES } from './rooms/registry'
 
 const doorModels = [...new Set(DOOR_DATA.map(d => d.model ?? asset('/models/door.glb')))]
 doorModels.forEach(m => useGLTF.preload(m))
-const sceneModels = [...new Set(DOOR_DATA.map(d => d.scene?.model).filter(Boolean))]
-sceneModels.forEach(m => useGLTF.preload(m))
 
 export default function Scene({ activePortal, onActivate }) {
   if (activePortal !== null) {
-    const { type, ...sceneProps } = DOOR_DATA[activePortal].scene
-    const ActiveScene = SCENE_TYPES[type]
-    return <ActiveScene {...sceneProps} />
+    const { type } = DOOR_DATA[activePortal].room
+    const ActiveRoom = ROOM_TYPES[type]
+    if (!ActiveRoom) {
+      console.warn(`ROOM_TYPES missing: ${type}`)
+      return null
+    }
+    return <ActiveRoom />
   }
 
   return (
