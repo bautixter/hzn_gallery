@@ -5,7 +5,17 @@ import { DOOR_RADIUS } from '../config'
 import { useDoorBehavior } from '../hooks/useDoorBehavior'
 import DoorLabel from './DoorLabel'
 
-export default function Door({ angle, data, model, onActivate }) {
+export default function Door({
+  angle,
+  data,
+  model,
+  onActivate,
+  portalIndex,
+  onInteractionFreeze,
+  exitReverse,
+  exitSnapshot,
+  onExitReverseComplete,
+}) {
   if (!model) model = asset('/models/door.glb')
   const { scene, animations } = useGLTF(model)
 
@@ -18,12 +28,18 @@ export default function Door({ angle, data, model, onActivate }) {
   }, [scene])
 
   const groupRef = useRef()
-  const { actions } = useAnimations(animations, groupRef)
+  const { actions, mixer } = useAnimations(animations, groupRef)
   const { handleClick, visible } = useDoorBehavior({
     angle,
     groupRef,
     actions,
+    mixer,
     onActivate,
+    portalIndex,
+    onInteractionFreeze,
+    exitReverse,
+    exitSnapshot,
+    onExitReverseComplete,
   })
 
   return (

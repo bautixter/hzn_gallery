@@ -9,7 +9,13 @@ import { ROOM_TYPES } from './rooms/registry'
 const doorModels = [...new Set(DOOR_DATA.map(d => d.model ?? asset('/models/door.glb')))]
 doorModels.forEach(m => useGLTF.preload(m))
 
-export default function Scene({ activePortal, onActivate }) {
+export default function Scene({
+  activePortal,
+  onActivate,
+  exitChoreography,
+  onDoorInteractionFreeze,
+  onExitReverseComplete,
+}) {
   if (activePortal !== null) {
     const { type } = DOOR_DATA[activePortal].room
     const ActiveRoom = ROOM_TYPES[type]
@@ -25,7 +31,13 @@ export default function Scene({ activePortal, onActivate }) {
       <Environment files={asset('/textures/citrus_orchard_puresky_4k.hdr')} background backgroundBlurriness={0} />
       <HazeDome />
       <Floor />
-      <Doors activePortal={activePortal} onActivate={onActivate} />
+      <Doors
+        activePortal={activePortal}
+        onActivate={onActivate}
+        exitChoreography={exitChoreography}
+        onDoorInteractionFreeze={onDoorInteractionFreeze}
+        onExitReverseComplete={onExitReverseComplete}
+      />
     </>
   )
 }

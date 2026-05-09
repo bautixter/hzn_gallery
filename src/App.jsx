@@ -1,14 +1,38 @@
-import { Canvas } from '@react-three/fiber'
+import { useEffect } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import Scene from './Scene'
 import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
 import GalleryInfoOverlay from './components/GalleryInfoOverlay'
+import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT } from './config/camera'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
+import { usePointerCoarse } from './hooks/usePointerCoarse'
 import { useSceneManager } from './utils/useSceneManager'
+
+function CameraFovSync({ fov }) {
+  const { camera } = useThree()
+  useEffect(() => {
+    camera.fov = fov
+    camera.updateProjectionMatrix()
+  }, [camera, fov])
+  return null
+}
 
 export default function App() {
   const { supported, granted, requestPermission } = useDeviceOrientation()
-  const { activePortal, overlayOpacity, handleActivate, handleBack, FADE_MS } = useSceneManager()
+  const {
+    activePortal,
+    overlayOpacity,
+    handleActivate,
+    handleBack,
+    FADE_MS,
+    exitChoreography,
+    registerDoorInteractionFreeze,
+    onExitReverseComplete,
+    exitControlsBlockRef,
+  } = useSceneManager()
+  const pointerCoarse = usePointerCoarse()
+  const fov = pointerCoarse ? DEFAULT_FOV : DESKTOP_FOV
 
   const showGyroPrompt =
     supported &&
@@ -19,11 +43,22 @@ export default function App() {
     <>
       <GalleryInfoOverlay activePortal={activePortal}>
         <Canvas
-          camera={{ position: [0, 1.6, 3], fov: 50 }}
+          camera={{ position: [0, EYE_HEIGHT, 3], fov }}
           gl={{ antialias: true }}
         >
-          <Scene activePortal={activePortal} onActivate={handleActivate} />
-          <CanvasControls granted={granted} />
+          <CameraFovSync fov={fov} />
+          <Scene
+            activePortal={activePortal}
+            onActivate={handleActivate}
+            exitChoreography={exitChoreography}
+            onDoorInteractionFreeze={registerDoorInteractionFreeze}
+            onExitReverseComplete={onExitReverseComplete}
+          />
+          <CanvasControls
+            granted={granted}
+            exitControlsBlockRef={exitControlsBlockRef}
+            exitCameraSnapshot={exitChoreography?.snapshot ?? null}
+          />
         </Canvas>
       </GalleryInfoOverlay>
 

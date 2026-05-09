@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, LoopOnce } from 'three'
 import {
@@ -16,7 +16,29 @@ import {
   Y_LERP_END,
 } from '../config/door'
 
-export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
+function applyDoorClipAtTime(action, mixer, t) {
+  if (!action || !mixer) return
+  const clip = action.getClip()
+  if (!clip || clip.duration <= 0) return
+  action.enabled = true
+  action.paused = false
+  action.timeScale = 0
+  action.time = MathUtils.clamp(t, 0, clip.duration)
+  mixer.update(0)
+}
+
+export function useDoorBehavior({
+  angle,
+  groupRef,
+  actions,
+  mixer,
+  onActivate,
+  portalIndex,
+  onInteractionFreeze,
+  exitReverse,
+  exitSnapshot,
+  onExitReverseComplete,
+}) {
   const controls = useThree(state => state.controls)
   const camera = useThree(state => state.camera)
   const get = useThree(state => state.get)
@@ -33,9 +55,49 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
   const isVisible = useRef(false)
   const [visible, setVisible] = useState(false)
 
+  const reverseProgress = useRef(1)
+  const exitCompleteCalled = useRef(false)
+
+  useLayoutEffect(() => {
+    if (!exitReverse || !exitSnapshot || !groupRef.current) return
+
+    exitCompleteCalled.current = false
+    reverseProgress.current = 1
+
+    const { slideTarget: st } = exitSnapshot
+    const startX = Math.sin(angle) * DOOR_RADIUS
+    const startZ = Math.cos(angle) * DOOR_RADIUS
+    const p = easeInOut(1)
+    const doorX = MathUtils.lerp(startX, st.x, p * OVERSHOOT)
+    const doorZ = MathUtils.lerp(startZ, st.z, p * OVERSHOOT)
+    const targetRotY = Math.atan2(st.x - doorX, st.z - doorZ)
+
+    groupRef.current.position.set(doorX, 0, doorZ)
+    groupRef.current.rotation.set(0, targetRotY, 0)
+
+    const action = actions['puerta_abrir']
+    if (action && mixer) {
+      action.reset()
+      action.setLoop(LoopOnce, 1)
+      action.clampWhenFinished = false
+      const clip = action.getClip()
+      const dur = clip?.duration ?? 0
+      applyDoorClipAtTime(action, mixer, dur)
+    }
+  }, [exitReverse, exitSnapshot, actions, mixer, angle, groupRef])
+
   const handleClick = useCallback(() => {
     if (isSliding.current) return
     if (dotRef.current < CLICK_THRESHOLD) return
+
+    onInteractionFreeze?.({
+      portalIndex,
+      cameraPosition: camera.position.toArray(),
+      cameraQuaternion: camera.quaternion.toArray(),
+      orbitTarget: controls?.target ? controls.target.toArray() : null,
+      slideTarget: { x: camera.position.x, z: camera.position.z },
+      angle,
+    })
 
     const action = actions['puerta_abrir']
     if (action) {
@@ -55,7 +117,7 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
     isSliding.current = true
     slideProgress.current = 0
     hasActivated.current = false
-  }, [actions, controls, camera])
+  }, [actions, controls, camera, onInteractionFreeze, portalIndex, angle])
 
   useEffect(() => () => {
     if (!disabledControlsForSlide.current) return
@@ -66,6 +128,58 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
 
   useFrame((state, delta) => {
     const { camera: frameCamera, controls: frameControls } = state
+
+    if (exitReverse && exitSnapshot && groupRef.current) {
+      if (frameControls) {
+        frameControls.enabled = false
+        disabledControlsForSlide.current = true
+      }
+
+      const { slideTarget: st } = exitSnapshot
+      const startX = Math.sin(angle) * DOOR_RADIUS
+      const startZ = Math.cos(angle) * DOOR_RADIUS
+
+      reverseProgress.current = Math.max(0, reverseProgress.current - delta * SLIDE_SPEED)
+      const p = easeInOut(reverseProgress.current)
+      const doorX = MathUtils.lerp(startX, st.x, p * OVERSHOOT)
+      const doorZ = MathUtils.lerp(startZ, st.z, p * OVERSHOOT)
+
+      groupRef.current.position.set(doorX, 0, doorZ)
+
+      const targetRotY = Math.atan2(st.x - doorX, st.z - doorZ)
+      const rotDiff = MathUtils.euclideanModulo(targetRotY - groupRef.current.rotation.y + Math.PI, 2 * Math.PI) - Math.PI
+      groupRef.current.rotation.y += rotDiff * (1 - Math.exp(-6 * delta))
+
+      const action = actions['puerta_abrir']
+      if (action && mixer) {
+        const clip = action.getClip()
+        const dur = clip?.duration ?? 0
+        applyDoorClipAtTime(action, mixer, p * dur)
+      }
+
+      if (reverseProgress.current <= 0 && !exitCompleteCalled.current) {
+        exitCompleteCalled.current = true
+        const actionDone = actions['puerta_abrir']
+        if (actionDone && mixer) {
+          actionDone.stop()
+          actionDone.timeScale = 1
+          actionDone.time = 0
+          mixer.update(0)
+        }
+        groupRef.current.position.set(startX, 0, startZ)
+        groupRef.current.rotation.set(0, angle + Math.PI, 0)
+        y.current = 0
+        isVisible.current = false
+        setVisible(false)
+        if (frameControls) {
+          frameControls.enabled = true
+          disabledControlsForSlide.current = false
+        }
+        onExitReverseComplete?.()
+      }
+      return
+    }
+
     frameCamera.getWorldDirection(_camDir)
     _toDoor.set(Math.sin(angle), 0, Math.cos(angle))
     const dot = _camDir.dot(_toDoor)
