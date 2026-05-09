@@ -10,7 +10,9 @@ import {
 } from '../config'
 import {
   SLIDE_SPEED,
+  REVERSE_SLIDE_SPEED,
   OVERSHOOT,
+  getDoorSlideExitPose,
   CLICK_THRESHOLD,
   Y_LERP_START,
   Y_LERP_END,
@@ -55,25 +57,21 @@ export function useDoorBehavior({
   const isVisible = useRef(false)
   const [visible, setVisible] = useState(false)
 
-  const reverseProgress = useRef(1)
+  /** Closing runs 1→0: must start fully open so puerta_abrir reads as a close (portal often opens mid-slide) */
+  const reverseSlideProgress = useRef(1)
   const exitCompleteCalled = useRef(false)
 
   useLayoutEffect(() => {
     if (!exitReverse || !exitSnapshot || !groupRef.current) return
 
     exitCompleteCalled.current = false
-    reverseProgress.current = 1
+    reverseSlideProgress.current = 1
 
     const { slideTarget: st } = exitSnapshot
-    const startX = Math.sin(angle) * DOOR_RADIUS
-    const startZ = Math.cos(angle) * DOOR_RADIUS
-    const p = easeInOut(1)
-    const doorX = MathUtils.lerp(startX, st.x, p * OVERSHOOT)
-    const doorZ = MathUtils.lerp(startZ, st.z, p * OVERSHOOT)
-    const targetRotY = Math.atan2(st.x - doorX, st.z - doorZ)
+    const { x, z, rotY, clipOpen01 } = getDoorSlideExitPose(angle, st, 1)
 
-    groupRef.current.position.set(doorX, 0, doorZ)
-    groupRef.current.rotation.set(0, targetRotY, 0)
+    groupRef.current.position.set(x, 0, z)
+    groupRef.current.rotation.set(0, rotY, 0)
 
     const action = actions['puerta_abrir']
     if (action && mixer) {
@@ -82,7 +80,7 @@ export function useDoorBehavior({
       action.clampWhenFinished = false
       const clip = action.getClip()
       const dur = clip?.duration ?? 0
-      applyDoorClipAtTime(action, mixer, dur)
+      applyDoorClipAtTime(action, mixer, clipOpen01 * dur)
     }
   }, [exitReverse, exitSnapshot, actions, mixer, angle, groupRef])
 
@@ -126,6 +124,7 @@ export function useDoorBehavior({
     disabledControlsForSlide.current = false
   }, [get])
 
+  // Priority < 0: run after default mixer updates so clip pose applies reliably on return.
   useFrame((state, delta) => {
     const { camera: frameCamera, controls: frameControls } = state
 
@@ -139,25 +138,20 @@ export function useDoorBehavior({
       const startX = Math.sin(angle) * DOOR_RADIUS
       const startZ = Math.cos(angle) * DOOR_RADIUS
 
-      reverseProgress.current = Math.max(0, reverseProgress.current - delta * SLIDE_SPEED)
-      const p = easeInOut(reverseProgress.current)
-      const doorX = MathUtils.lerp(startX, st.x, p * OVERSHOOT)
-      const doorZ = MathUtils.lerp(startZ, st.z, p * OVERSHOOT)
+      reverseSlideProgress.current = Math.max(0, reverseSlideProgress.current - delta * REVERSE_SLIDE_SPEED)
+      const { x, z, rotY, clipOpen01 } = getDoorSlideExitPose(angle, st, reverseSlideProgress.current)
 
-      groupRef.current.position.set(doorX, 0, doorZ)
-
-      const targetRotY = Math.atan2(st.x - doorX, st.z - doorZ)
-      const rotDiff = MathUtils.euclideanModulo(targetRotY - groupRef.current.rotation.y + Math.PI, 2 * Math.PI) - Math.PI
-      groupRef.current.rotation.y += rotDiff * (1 - Math.exp(-6 * delta))
+      groupRef.current.position.set(x, 0, z)
+      groupRef.current.rotation.y = rotY
 
       const action = actions['puerta_abrir']
       if (action && mixer) {
         const clip = action.getClip()
         const dur = clip?.duration ?? 0
-        applyDoorClipAtTime(action, mixer, p * dur)
+        applyDoorClipAtTime(action, mixer, clipOpen01 * dur)
       }
 
-      if (reverseProgress.current <= 0 && !exitCompleteCalled.current) {
+      if (reverseSlideProgress.current <= 0 && !exitCompleteCalled.current) {
         exitCompleteCalled.current = true
         const actionDone = actions['puerta_abrir']
         if (actionDone && mixer) {
@@ -229,7 +223,7 @@ export function useDoorBehavior({
       isVisible.current = shouldShow
       setVisible(shouldShow)
     }
-  })
+  }, -1)
 
   return { handleClick, visible }
 }

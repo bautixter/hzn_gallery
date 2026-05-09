@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { asset } from '../utils/asset'
 import { DOOR_RADIUS } from '../config'
+import { getDoorSlideExitPose } from '../config/door'
 import { useDoorBehavior } from '../hooks/useDoorBehavior'
 import DoorLabel from './DoorLabel'
 
@@ -27,6 +28,11 @@ export default function Door({
     return clone
   }, [scene])
 
+  const exitStart = useMemo(() => {
+    if (!exitReverse || !exitSnapshot?.slideTarget) return null
+    return getDoorSlideExitPose(angle, exitSnapshot.slideTarget, 1)
+  }, [exitReverse, exitSnapshot, angle])
+
   const groupRef = useRef()
   const { actions, mixer } = useAnimations(animations, groupRef)
   const { handleClick, visible } = useDoorBehavior({
@@ -42,11 +48,18 @@ export default function Door({
     onExitReverseComplete,
   })
 
+  const ringX = Math.sin(angle) * DOOR_RADIUS
+  const ringZ = Math.cos(angle) * DOOR_RADIUS
+
   return (
     <group
       ref={groupRef}
-      position={[Math.sin(angle) * DOOR_RADIUS, -3, Math.cos(angle) * DOOR_RADIUS]}
-      rotation={[0, angle + Math.PI, 0]}
+      position={
+        exitStart
+          ? [exitStart.x, 0, exitStart.z]
+          : [ringX, -3, ringZ]
+      }
+      rotation={[0, exitStart ? exitStart.rotY : angle + Math.PI, 0]}
     >
       <primitive object={clonedScene} onClick={handleClick} />
       <DoorLabel data={data} visible={visible} />
