@@ -18,10 +18,12 @@ import {
   Y_LERP_END,
 } from '../config/door'
 
+/** Scrub clip time with timeScale 0. Must call play() so the action is active — inactive clipActions are skipped by mixer.update (drei only advances the mixer). */
 function applyDoorClipAtTime(action, mixer, t) {
   if (!action || !mixer) return
   const clip = action.getClip()
   if (!clip || clip.duration <= 0) return
+  action.play()
   action.enabled = true
   action.paused = false
   action.timeScale = 0

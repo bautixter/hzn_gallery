@@ -9,7 +9,8 @@ export const OVERSHOOT = 2.5
 
 /**
  * Hub return only: lerp capped at slideTarget (no overshoot past camera).
- * clipOpen01 0–1 for puerta_abrir sampling.
+ * clipOpen01 uses the same `blend` as position so puerta_abrir reaches fully closed
+ * exactly when the group reaches the ring (clip must be scrubbed with an active action).
  */
 export function getDoorSlideExitPose(angle, slideTargetXZ, slideProgress01) {
   const p = easeInOut(slideProgress01)
