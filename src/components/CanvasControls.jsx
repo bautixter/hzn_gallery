@@ -1,9 +1,9 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
 import { OrbitControls, DeviceOrientationControls } from '@react-three/drei'
 import { EYE_HEIGHT } from '../config/camera'
 
-export default function CanvasControls({ granted, exitControlsBlockRef, exitCameraSnapshot }) {
+export default function CanvasControls({ granted, exitCameraSnapshot }) {
   const { camera, controls } = useThree()
   const lastRestoreKey = useRef(null)
 
@@ -28,10 +28,6 @@ export default function CanvasControls({ granted, exitControlsBlockRef, exitCame
     }
     camera.updateMatrixWorld()
   }, [exitCameraSnapshot, granted, camera, controls])
-
-  useFrame(() => {
-    if (exitControlsBlockRef?.current && controls) controls.enabled = false
-  })
 
   return granted
     ? <DeviceOrientationControls makeDefault />

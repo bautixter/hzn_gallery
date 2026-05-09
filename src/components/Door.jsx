@@ -16,6 +16,7 @@ export default function Door({
   exitReverse,
   exitSnapshot,
   onExitReverseComplete,
+  approachPortalRef,
 }) {
   if (!model) model = asset('/models/door.glb')
   const { scene, animations } = useGLTF(model)
@@ -46,6 +47,7 @@ export default function Door({
     exitReverse,
     exitSnapshot,
     onExitReverseComplete,
+    approachPortalRef,
   })
 
   const ringX = Math.sin(angle) * DOOR_RADIUS

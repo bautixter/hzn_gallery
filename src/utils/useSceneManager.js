@@ -10,8 +10,6 @@ export function useSceneManager() {
   const timerIds   = useRef([])
   const activePortalRef = useRef(null)
   const doorSnapshotRef = useRef(null)
-  /** Synchronous guard so CanvasControls stops blocking in the same frame reverse completes */
-  const exitControlsBlockRef = useRef(false)
 
   useEffect(() => {
     activePortalRef.current = activePortal
@@ -57,7 +55,6 @@ export function useSceneManager() {
     const snap = doorSnapshotRef.current
     const cur = activePortalRef.current
     if (snap && cur !== null && snap.portalIndex === cur) {
-      exitControlsBlockRef.current = true
       triggerTransition(() => {
         setExitChoreography({ snapshot: snap })
         setActivePortal(null)
@@ -68,7 +65,6 @@ export function useSceneManager() {
   }, [triggerTransition])
 
   const onExitReverseComplete = useCallback(() => {
-    exitControlsBlockRef.current = false
     setExitChoreography(null)
     doorSnapshotRef.current = null
   }, [])
@@ -82,6 +78,5 @@ export function useSceneManager() {
     exitChoreography,
     registerDoorInteractionFreeze,
     onExitReverseComplete,
-    exitControlsBlockRef,
   }
 }

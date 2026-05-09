@@ -29,7 +29,6 @@ export default function App() {
     exitChoreography,
     registerDoorInteractionFreeze,
     onExitReverseComplete,
-    exitControlsBlockRef,
   } = useSceneManager()
   const pointerCoarse = usePointerCoarse()
   const fov = pointerCoarse ? DEFAULT_FOV : DESKTOP_FOV
@@ -56,7 +55,6 @@ export default function App() {
           />
           <CanvasControls
             granted={granted}
-            exitControlsBlockRef={exitControlsBlockRef}
             exitCameraSnapshot={exitChoreography?.snapshot ?? null}
           />
         </Canvas>

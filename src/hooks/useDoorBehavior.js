@@ -6,12 +6,14 @@ import {
   SHOW_THRESHOLD,
   _camDir,
   _toDoor,
+  _horizForward,
   easeInOut,
 } from '../config'
 import {
   SLIDE_SPEED,
   REVERSE_SLIDE_SPEED,
-  OVERSHOOT,
+  APPROACH_LERP_K,
+  APPROACH_RAY_XZ_SMOOTH,
   getDoorSlideExitPose,
   CLICK_THRESHOLD,
   Y_LERP_START,
@@ -42,18 +44,17 @@ export function useDoorBehavior({
   exitReverse,
   exitSnapshot,
   onExitReverseComplete,
+  approachPortalRef,
 }) {
   const controls = useThree(state => state.controls)
   const camera = useThree(state => state.camera)
-  const get = useThree(state => state.get)
-
-  const disabledControlsForSlide = useRef(false)
 
   const isSliding = useRef(false)
   const slideProgress = useRef(0)
   const hasActivated = useRef(false)
   const dotRef = useRef(0)
-  const slideTarget = useRef({ x: 0, z: 0 })
+  const slideDistStart = useRef(1)
+  const slideDistEnd = useRef(0)
 
   const y = useRef(-3)
   const isVisible = useRef(false)
@@ -62,6 +63,10 @@ export function useDoorBehavior({
   /** Closing runs 1→0: must start fully open so puerta_abrir reads as a close (portal often opens mid-slide) */
   const reverseSlideProgress = useRef(1)
   const exitCompleteCalled = useRef(false)
+
+  useEffect(() => () => {
+    if (approachPortalRef?.current === portalIndex) approachPortalRef.current = null
+  }, [approachPortalRef, portalIndex])
 
   useLayoutEffect(() => {
     if (!exitReverse || !exitSnapshot || !groupRef.current) return
@@ -89,6 +94,8 @@ export function useDoorBehavior({
   const handleClick = useCallback(() => {
     if (isSliding.current) return
     if (dotRef.current < CLICK_THRESHOLD) return
+    const lock = approachPortalRef?.current
+    if (lock != null && lock !== portalIndex) return
 
     onInteractionFreeze?.({
       portalIndex,
@@ -107,35 +114,31 @@ export function useDoorBehavior({
       action.play()
     }
 
-    if (controls) {
-      controls.enabled = false
-      disabledControlsForSlide.current = true
-    }
-    slideTarget.current.x = camera.position.x
-    slideTarget.current.z = camera.position.z
+    camera.getWorldDirection(_horizForward)
+    _horizForward.y = 0
+    if (_horizForward.lengthSq() < 1e-10) _horizForward.set(0, 0, 1)
+    else _horizForward.normalize()
+
+    const startX = Math.sin(angle) * DOOR_RADIUS
+    const startZ = Math.cos(angle) * DOOR_RADIUS
+    const dx = startX - camera.position.x
+    const dz = startZ - camera.position.z
+    slideDistStart.current = Math.max(0.15, dx * _horizForward.x + dz * _horizForward.z)
+    slideDistEnd.current = 0
+
+    if (approachPortalRef) approachPortalRef.current = portalIndex
+
     setVisible(false)
     isSliding.current = true
     slideProgress.current = 0
     hasActivated.current = false
-  }, [actions, controls, camera, onInteractionFreeze, portalIndex, angle])
-
-  useEffect(() => () => {
-    if (!disabledControlsForSlide.current) return
-    const c = get().controls
-    if (c) c.enabled = true
-    disabledControlsForSlide.current = false
-  }, [get])
+  }, [actions, controls, camera, onInteractionFreeze, portalIndex, angle, approachPortalRef])
 
   // Priority < 0: run after default mixer updates so clip pose applies reliably on return.
   useFrame((state, delta) => {
-    const { camera: frameCamera, controls: frameControls } = state
+    const { camera: frameCamera } = state
 
     if (exitReverse && exitSnapshot && groupRef.current) {
-      if (frameControls) {
-        frameControls.enabled = false
-        disabledControlsForSlide.current = true
-      }
-
       const { slideTarget: st } = exitSnapshot
       const startX = Math.sin(angle) * DOOR_RADIUS
       const startZ = Math.cos(angle) * DOOR_RADIUS
@@ -167,14 +170,13 @@ export function useDoorBehavior({
         y.current = 0
         isVisible.current = false
         setVisible(false)
-        if (frameControls) {
-          frameControls.enabled = true
-          disabledControlsForSlide.current = false
-        }
         onExitReverseComplete?.()
       }
       return
     }
+
+    const approachLock = approachPortalRef?.current
+    const isLockedOut = approachLock != null && approachLock !== portalIndex
 
     frameCamera.getWorldDirection(_camDir)
     _toDoor.set(Math.sin(angle), 0, Math.cos(angle))
@@ -182,40 +184,55 @@ export function useDoorBehavior({
     dotRef.current = dot
 
     const t = MathUtils.smoothstep(dot, Y_LERP_START, Y_LERP_END)
-    const yTarget = isSliding.current ? 0 : MathUtils.lerp(-3, 0, t)
+    const yTarget = isSliding.current ? 0 : isLockedOut ? -3 : MathUtils.lerp(-3, 0, t)
     y.current = MathUtils.lerp(y.current, yTarget, 1 - Math.exp(-3 * delta))
     groupRef.current.position.y = y.current
 
-    if (isSliding.current) {
-      if (frameControls) {
-        frameControls.enabled = false
-        disabledControlsForSlide.current = true
+    if (isLockedOut) {
+      if (isVisible.current) {
+        isVisible.current = false
+        setVisible(false)
       }
+      return
+    }
+
+    if (isSliding.current) {
       slideProgress.current = Math.min(slideProgress.current + delta * SLIDE_SPEED, 1)
       const p = easeInOut(slideProgress.current)
+      const k = APPROACH_LERP_K
+      const tPos = k >= 1 ? p * k : p
 
-      const startX = Math.sin(angle) * DOOR_RADIUS
-      const startZ = Math.cos(angle) * DOOR_RADIUS
-      const doorX = MathUtils.lerp(startX, slideTarget.current.x, p * OVERSHOOT)
-      const doorZ = MathUtils.lerp(startZ, slideTarget.current.z, p * OVERSHOOT)
-      groupRef.current.position.x = doorX
-      groupRef.current.position.z = doorZ
+      frameCamera.getWorldDirection(_horizForward)
+      _horizForward.y = 0
+      if (_horizForward.lengthSq() < 1e-10) _horizForward.set(0, 0, 1)
+      else _horizForward.normalize()
 
-      const targetRotY = Math.atan2(slideTarget.current.x - doorX, slideTarget.current.z - doorZ)
+      const dist = MathUtils.lerp(slideDistStart.current, slideDistEnd.current, tPos)
+      const cx = frameCamera.position.x
+      const cz = frameCamera.position.z
+      const targetX = cx + _horizForward.x * dist
+      const targetZ = cz + _horizForward.z * dist
+      const xzEase = 1 - Math.exp(-APPROACH_RAY_XZ_SMOOTH * delta)
+      groupRef.current.position.x = MathUtils.lerp(groupRef.current.position.x, targetX, xzEase)
+      groupRef.current.position.z = MathUtils.lerp(groupRef.current.position.z, targetZ, xzEase)
+
+      const px = groupRef.current.position.x
+      const pz = groupRef.current.position.z
+      const targetRotY = Math.atan2(cx - px, cz - pz)
       const rotDiff = MathUtils.euclideanModulo(targetRotY - groupRef.current.rotation.y + Math.PI, 2 * Math.PI) - Math.PI
       groupRef.current.rotation.y += rotDiff * (1 - Math.exp(-6 * delta))
 
-      if (!hasActivated.current && p >= 1 / OVERSHOOT) {
-        hasActivated.current = true
-        onActivate()
+      if (!hasActivated.current) {
+        const fire = k >= 1 ? p * k >= 1 : p >= k
+        if (fire) {
+          hasActivated.current = true
+          onActivate()
+        }
       }
 
       if (slideProgress.current >= 1) {
         isSliding.current = false
-        if (frameControls) {
-          frameControls.enabled = true
-          disabledControlsForSlide.current = false
-        }
+        if (approachPortalRef?.current === portalIndex) approachPortalRef.current = null
       }
       return
     }
