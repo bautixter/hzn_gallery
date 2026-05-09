@@ -2,6 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import Scene from './Scene'
 import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
+import GalleryInfoOverlay from './components/GalleryInfoOverlay'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
 import { useSceneManager } from './utils/useSceneManager'
 
@@ -16,13 +17,15 @@ export default function App() {
 
   return (
     <>
-      <Canvas
-        camera={{ position: [0, 1.6, 3], fov: 50 }}
-        gl={{ antialias: true }}
-      >
-        <Scene activePortal={activePortal} onActivate={handleActivate} />
-        <CanvasControls granted={granted} />
-      </Canvas>
+      <GalleryInfoOverlay activePortal={activePortal}>
+        <Canvas
+          camera={{ position: [0, 1.6, 3], fov: 50 }}
+          gl={{ antialias: true }}
+        >
+          <Scene activePortal={activePortal} onActivate={handleActivate} />
+          <CanvasControls granted={granted} />
+        </Canvas>
+      </GalleryInfoOverlay>
 
       <AppChrome
         overlayOpacity={overlayOpacity}
