@@ -58,8 +58,10 @@ export function useSceneManager() {
     const cur = activePortalRef.current
     if (snap && cur !== null && snap.portalIndex === cur) {
       exitControlsBlockRef.current = true
-      setExitChoreography({ snapshot: snap })
-      setActivePortal(null)
+      triggerTransition(() => {
+        setExitChoreography({ snapshot: snap })
+        setActivePortal(null)
+      })
       return
     }
     triggerTransition(() => setActivePortal(null))
