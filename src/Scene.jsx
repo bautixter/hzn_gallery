@@ -4,13 +4,7 @@ import HazeDome from './components/HazeDome'
 import Floor from './components/Floor'
 import Doors from './components/Doors'
 import { DOOR_DATA } from './data/doorData'
-import RoomScene from './scenes/RoomScene'
-import BoxScene from './scenes/BoxScene'
-
-const SCENE_TYPES = {
-  room: RoomScene,
-  box:  BoxScene,
-}
+import { SCENE_TYPES } from './scenes/registry'
 
 const doorModels = [...new Set(DOOR_DATA.map(d => d.model ?? asset('/models/door.glb')))]
 doorModels.forEach(m => useGLTF.preload(m))
