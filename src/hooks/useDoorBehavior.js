@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils, LoopOnce } from 'three'
 import {
@@ -19,6 +19,9 @@ import {
 export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
   const controls = useThree(state => state.controls)
   const camera = useThree(state => state.camera)
+  const get = useThree(state => state.get)
+
+  const disabledControlsForSlide = useRef(false)
 
   const isSliding = useRef(false)
   const slideProgress = useRef(0)
@@ -42,7 +45,10 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
       action.play()
     }
 
-    if (controls) controls.enabled = false
+    if (controls) {
+      controls.enabled = false
+      disabledControlsForSlide.current = true
+    }
     slideTarget.current.x = camera.position.x
     slideTarget.current.z = camera.position.z
     setVisible(false)
@@ -51,7 +57,15 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
     hasActivated.current = false
   }, [actions, controls, camera])
 
-  useFrame(({ camera: frameCamera }, delta) => {
+  useEffect(() => () => {
+    if (!disabledControlsForSlide.current) return
+    const c = get().controls
+    if (c) c.enabled = true
+    disabledControlsForSlide.current = false
+  }, [get])
+
+  useFrame((state, delta) => {
+    const { camera: frameCamera, controls: frameControls } = state
     frameCamera.getWorldDirection(_camDir)
     _toDoor.set(Math.sin(angle), 0, Math.cos(angle))
     const dot = _camDir.dot(_toDoor)
@@ -63,6 +77,10 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
     groupRef.current.position.y = y.current
 
     if (isSliding.current) {
+      if (frameControls) {
+        frameControls.enabled = false
+        disabledControlsForSlide.current = true
+      }
       slideProgress.current = Math.min(slideProgress.current + delta * SLIDE_SPEED, 1)
       const p = easeInOut(slideProgress.current)
 
@@ -79,8 +97,15 @@ export function useDoorBehavior({ angle, groupRef, actions, onActivate }) {
 
       if (!hasActivated.current && p >= 1 / OVERSHOOT) {
         hasActivated.current = true
-        if (controls) controls.enabled = true
         onActivate()
+      }
+
+      if (slideProgress.current >= 1) {
+        isSliding.current = false
+        if (frameControls) {
+          frameControls.enabled = true
+          disabledControlsForSlide.current = false
+        }
       }
       return
     }

@@ -10,6 +10,6 @@ export default function CanvasControls({ granted }) {
   }, [granted])
 
   return granted
-    ? <DeviceOrientationControls />
-    : <OrbitControls target={[0, 1.6, 0]} maxPolarAngle={Math.PI} />
+    ? <DeviceOrientationControls makeDefault />
+    : <OrbitControls makeDefault target={[0, 1.6, 0]} maxPolarAngle={Math.PI} />
 }
