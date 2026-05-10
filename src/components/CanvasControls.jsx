@@ -1,15 +1,11 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
-import { OrbitControls, DeviceOrientationControls } from '@react-three/drei'
-import { EYE_HEIGHT } from '../config/camera'
+import { DeviceOrientationControls } from '@react-three/drei'
+import DragLook from './DragLook'
 
-export default function CanvasControls({ granted, exitCameraSnapshot }) {
+export default function CanvasControls({ exitCameraSnapshot, pointerCoarse, granted }) {
   const { camera, controls } = useThree()
   const lastRestoreKey = useRef(null)
-
-  useEffect(() => {
-    if (granted) camera.position.set(0, EYE_HEIGHT, 0)
-  }, [granted, camera])
 
   useLayoutEffect(() => {
     if (!exitCameraSnapshot) {
@@ -22,14 +18,16 @@ export default function CanvasControls({ granted, exitCameraSnapshot }) {
 
     camera.position.fromArray(exitCameraSnapshot.cameraPosition)
     camera.quaternion.fromArray(exitCameraSnapshot.cameraQuaternion)
-    if (!granted && controls?.target && exitCameraSnapshot.orbitTarget) {
+    if (controls?.target && exitCameraSnapshot.orbitTarget) {
       controls.target.fromArray(exitCameraSnapshot.orbitTarget)
       if (typeof controls.update === 'function') controls.update()
     }
     camera.updateMatrixWorld()
-  }, [exitCameraSnapshot, granted, camera, controls])
+  }, [exitCameraSnapshot, camera, controls])
 
-  return granted
-    ? <DeviceOrientationControls makeDefault />
-    : <OrbitControls makeDefault target={[0, EYE_HEIGHT, 0]} maxPolarAngle={Math.PI} />
+  if (pointerCoarse && granted) {
+    return <DeviceOrientationControls makeDefault />
+  }
+
+  return <DragLook makeDefault />
 }

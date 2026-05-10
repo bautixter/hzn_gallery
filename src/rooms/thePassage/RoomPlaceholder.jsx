@@ -1,8 +1,11 @@
+import RoomSpawnAlign from '../_shared/RoomSpawnAlign'
+import { DEFAULT_ROOM_SPAWN as ROOM_SPAWN } from '../_shared/roomSpawn'
 import SquareRoomShell from '../_shared/SquareRoomShell'
 
 /** Placeholder: sala cálida + cubo central. Sustituir por escena final en esta carpeta. */
 export default function RoomPlaceholder() {
   return (
+    <RoomSpawnAlign spawn={ROOM_SPAWN}>
     <SquareRoomShell
       floorColor="#4a3028"
       ceilingColor="#2c1c18"
@@ -13,5 +16,6 @@ export default function RoomPlaceholder() {
         <meshStandardMaterial color="#e8a090" metalness={0.15} roughness={0.45} />
       </mesh>
     </SquareRoomShell>
+    </RoomSpawnAlign>
   )
 }

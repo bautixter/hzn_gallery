@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
-import Scene from './Scene'
+import Scene from './rooms/hub/Scene'
 import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
 import GalleryInfoOverlay from './components/GalleryInfoOverlay'
-import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT } from './config/camera'
+import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT, getHubCameraYawTowardDoor } from './config/camera'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
 import { usePointerCoarse } from './hooks/usePointerCoarse'
 import { useSceneManager } from './utils/useSceneManager'
@@ -42,7 +42,11 @@ export default function App() {
     <>
       <GalleryInfoOverlay activePortal={activePortal}>
         <Canvas
-          camera={{ position: [0, EYE_HEIGHT, 3], fov }}
+          camera={{
+            position: [0, EYE_HEIGHT, 0],
+            rotation: [0, getHubCameraYawTowardDoor(), 0],
+            fov,
+          }}
           gl={{ antialias: true }}
         >
           <CameraFovSync fov={fov} />
@@ -54,6 +58,7 @@ export default function App() {
             onExitReverseComplete={onExitReverseComplete}
           />
           <CanvasControls
+            pointerCoarse={pointerCoarse}
             granted={granted}
             exitCameraSnapshot={exitChoreography?.snapshot ?? null}
           />
