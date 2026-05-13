@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Passage</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Georgia, "Times New Roman", serif;
+        background: linear-gradient(170deg, rgba(48, 26, 22, 0.97), rgba(24, 14, 12, 0.99));
+        color: rgba(255, 232, 220, 0.94);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: clamp(32px, 8vw, 96px);
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 0.75rem;
+        color: rgba(255, 240, 230, 0.98);
+        font-size: clamp(2rem, 5vw, 4rem);
+        font-weight: 500;
+        line-height: 1.05;
+      }
+
+      .lede {
+        margin: 0 0 2.4rem;
+        color: rgba(230, 190, 170, 0.88);
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+
+      section {
+        margin: 0 0 1.9rem;
+      }
+
+      h2 {
+        margin: 0 0 0.55rem;
+        color: rgba(255, 160, 120, 0.9);
+        font-family: system-ui, sans-serif;
+        font-size: 0.78rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      p {
+        margin: 0;
+        color: rgba(250, 220, 205, 0.9);
+      }
+
+      #overlay-close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: inherit;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        cursor: pointer;
+        opacity: 0.6;
+        backdrop-filter: blur(8px);
+        font-family: system-ui, sans-serif;
+        transition: opacity 0.15s ease;
+      }
+      #overlay-close:hover { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
+    <main>
+      <h1>The Passage — volumen cúbico</h1>
+      <p class="lede">
+        Sala de tonos tierra y un cubo como pieza única. Pensada como placeholder de
+        escultura e instalación: aquí irá tu modelo o composición final.
+      </p>
+
+      <section>
+        <h2>Concepto</h2>
+        <p>
+          El umbral como objeto: el cubo marca un centro gravedad en la sala. Sustituye la
+          primitiva por malla, GLB o instancing según tu pieza.
+        </p>
+      </section>
+
+      <section>
+        <h2>Autores</h2>
+        <p>Añade créditos de obra, sonido o diseño en public/gallery-info/the-passage.html.</p>
+      </section>
+
+      <section>
+        <h2>Nota técnica</h2>
+        <p>
+          Escena en thePassage/RoomPlaceholder.jsx. Mantiene iluminación básica y sala 8x8;
+          copia el archivo o renómbralo al integrar assets.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

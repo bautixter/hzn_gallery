@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Gate</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(175deg, rgba(36, 24, 48, 0.98), rgba(16, 10, 26, 0.99));
+        color: rgba(238, 228, 255, 0.93);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: clamp(32px, 8vw, 96px);
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 660px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: clamp(2rem, 5vw, 4.2rem);
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+
+      .lede {
+        margin: 0 0 2.4rem;
+        color: rgba(190, 170, 220, 0.86);
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+
+      section {
+        margin: 0 0 1.9rem;
+      }
+
+      h2 {
+        margin: 0 0 0.55rem;
+        color: rgba(210, 160, 255, 0.9);
+        font-size: 0.78rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      p {
+        margin: 0;
+        color: rgba(238, 228, 255, 0.88);
+      }
+
+      #overlay-close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: inherit;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        cursor: pointer;
+        opacity: 0.6;
+        backdrop-filter: blur(8px);
+        font-family: system-ui, sans-serif;
+        transition: opacity 0.15s ease;
+      }
+      #overlay-close:hover { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
+    <main>
+      <h1>The Gate — octaedro y umbral</h1>
+      <p class="lede">
+        Sala violeta con un octaedro como “gema” central. Placeholder para mixed media,
+        collage 3D o puerta simbólica.
+      </p>
+
+      <section>
+        <h2>Montaje</h2>
+        <p>
+          Ocho caras, un solo volumen: fácil de reconocer al probar la galería. Reemplaza en
+          theGate/RoomPlaceholder.jsx.
+        </p>
+      </section>
+
+      <section>
+        <h2>Autores</h2>
+        <p>public/gallery-info/the-gate.html — créditos y enlaces externos si los hay.</p>
+      </section>
+
+      <section>
+        <h2>Panel editorial</h2>
+        <p>
+          Estilo lavanda y magenta suave en los títulos; coherente con las paredes de la sala
+          placeholder.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

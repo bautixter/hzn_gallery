@@ -1,17 +1,17 @@
 import { DOOR_DATA } from './doorData'
-import { roomGalleryInfo as hubGallery } from '../rooms/hub/roomGalleryInfo'
+import { asset } from '../utils/asset'
 
-export { hubGallery as HUB_GALLERY_INFO }
+export const HUB_GALLERY_INFO_SRC = asset('/gallery-info/hub.html')
 
 /**
- * Resuelve el bloque editorial según `activePortal` (`null` = vestíbulo).
- * Cada puerta enlaza su `galleryInfo` en `doorData` → archivo `rooms/gallery/<sala>/roomGalleryInfo.js`.
+ * Resuelve el HTML editorial según `activePortal` (`null` = vestíbulo).
+ * Cada puerta enlaza su `galleryInfoSrc` en `doorData` -> archivo public/gallery-info/<sala>.html.
  */
-export function getGalleryInfo(activePortal) {
-  if (activePortal === null) return hubGallery
+export function getGalleryInfoSrc(activePortal) {
+  if (activePortal === null) return HUB_GALLERY_INFO_SRC
   const row = DOOR_DATA[activePortal]
-  if (!row?.galleryInfo) {
-    throw new Error(`doorData[${activePortal}] no define galleryInfo`)
+  if (!row?.galleryInfoSrc) {
+    throw new Error(`doorData[${activePortal}] no define galleryInfoSrc`)
   }
-  return row.galleryInfo
+  return row.galleryInfoSrc
 }

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drei Gallery</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(160deg, rgba(14, 16, 32, 0.98), rgba(8, 10, 22, 0.99));
+        color: rgba(245, 246, 250, 0.92);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: clamp(32px, 8vw, 96px);
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 680px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: clamp(2.1rem, 6vw, 4.6rem);
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+
+      .lede {
+        margin: 0 0 2.5rem;
+        color: rgba(210, 218, 240, 0.85);
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      }
+
+      section {
+        margin: 0 0 1.9rem;
+      }
+
+      h2 {
+        margin: 0 0 0.55rem;
+        color: rgba(150, 190, 255, 0.92);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      p {
+        margin: 0;
+        color: rgba(230, 232, 240, 0.88);
+      }
+
+      #overlay-close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: inherit;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        cursor: pointer;
+        opacity: 0.6;
+        backdrop-filter: blur(8px);
+        font-family: system-ui, sans-serif;
+        transition: opacity 0.15s ease;
+      }
+      #overlay-close:hover { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
+    <main>
+      <h1>Drei Gallery</h1>
+      <p class="lede">
+        Vestíbulo de la galería virtual. Cada puerta lleva a una sala placeholder:
+        colores, forma central y texto distintos hasta que sustituyas por las escenas finales.
+      </p>
+
+      <section>
+        <h2>Recorrido</h2>
+        <p>
+          Avanza por las salas en cualquier orden. Dentro de cada una verás un volumen
+          geométrico distinto sobre un suelo y muros propios: son puntos de anclaje para tu
+          montaje 3D definitivo.
+        </p>
+      </section>
+
+      <section>
+        <h2>Créditos</h2>
+        <p>Edita este archivo en public/gallery-info/hub.html con nombres, fecha y agradecimientos.</p>
+      </section>
+
+      <section>
+        <h2>Controles</h2>
+        <p>
+          Ratón: arrastra para mirar. En móvil puedes activar el giroscopio si el navegador
+          lo permite. Back te devuelve aquí.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
