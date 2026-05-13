@@ -40,7 +40,7 @@ export default function App() {
 
   return (
     <>
-      <GalleryInfoOverlay activePortal={activePortal}>
+      <GalleryInfoOverlay activePortal={activePortal} compactWidth={pointerCoarse ? null : 380}>
         <Canvas
           camera={{
             position: [0, EYE_HEIGHT, 0],

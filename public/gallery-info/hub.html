@@ -8,8 +8,8 @@
       :root {
         color-scheme: dark;
         font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: linear-gradient(160deg, rgba(14, 16, 32, 0.98), rgba(8, 10, 22, 0.99));
-        color: rgba(245, 246, 250, 0.92);
+        background: rgb(226, 230, 236);
+        color: rgba(0,0,0,1);
       }
 
       * {
@@ -37,7 +37,7 @@
 
       .lede {
         margin: 0 0 2.5rem;
-        color: rgba(210, 218, 240, 0.85);
+        color: rgba(0,0,0,1);
         font-size: clamp(1.1rem, 2vw, 1.35rem);
       }
 
@@ -47,7 +47,7 @@
 
       h2 {
         margin: 0 0 0.55rem;
-        color: rgba(150, 190, 255, 0.92);
+        color: rgba(0,0,0,1);
         font-size: 0.78rem;
         font-weight: 700;
         letter-spacing: 0.14em;
@@ -56,7 +56,7 @@
 
       p {
         margin: 0;
-        color: rgba(230, 232, 240, 0.88);
+        color: rgba(0,0,0,1);
       }
 
       #overlay-close {
@@ -67,9 +67,8 @@
         font-size: 12px;
         font-weight: 600;
         letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: inherit;
-        background: rgba(255, 255, 255, 0.06);
+        color: rgba(0,0,0,1);
+        background: rgba(255, 255, 255, 0.77);
         border: 1px solid rgba(255, 255, 255, 0.22);
         border-radius: 999px;
         cursor: pointer;
@@ -84,7 +83,7 @@
   <body>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
     <main>
-      <h1>Drei Gallery</h1>
+      <img src="../images/hzn_logo.svg" alt="Drei Gallery" style="max-width:300px;width:100%;display:block;margin:0 0 1rem;" />
       <p class="lede">
         Vestíbulo de la galería virtual. Cada puerta lleva a una sala placeholder:
         colores, forma central y texto distintos hasta que sustituyas por las escenas finales.
@@ -99,18 +98,6 @@
         </p>
       </section>
 
-      <section>
-        <h2>Créditos</h2>
-        <p>Edita este archivo en public/gallery-info/hub.html con nombres, fecha y agradecimientos.</p>
-      </section>
-
-      <section>
-        <h2>Controles</h2>
-        <p>
-          Ratón: arrastra para mirar. En móvil puedes activar el giroscopio si el navegador
-          lo permite. Back te devuelve aquí.
-        </p>
-      </section>
     </main>
   </body>
 </html>

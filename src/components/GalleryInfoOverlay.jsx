@@ -25,13 +25,15 @@ const reopenButtonStyle = {
   transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
 }
 
-const panelShellStyle = {
+const panelShellBase = {
   position: 'fixed',
-  inset: 0,
+  top: 0,
+  left: 0,
+  bottom: 0,
   zIndex: 1100,
   boxSizing: 'border-box',
-  background: 'rgba(6, 7, 12, 0.97)',
   overflow: 'hidden',
+  boxShadow: '0 0 5px 0 rgba(0, 0, 0, 0.3)',
   transition: `transform ${TRANSITION_MS}ms ${easing}`,
   willChange: 'transform',
 }
@@ -51,9 +53,10 @@ const iframeStyle = {
   background: 'transparent',
 }
 
-export default function GalleryInfoOverlay({ activePortal, children }) {
+export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null }) {
   const galleryInfoSrc = getGalleryInfoSrc(activePortal)
   const [panelOpen, setPanelOpen] = useState(true)
+  const panelWidth = compactWidth != null ? `${compactWidth}px` : '100%'
 
   useEffect(() => {
     const onMessage = (e) => {
@@ -86,7 +89,7 @@ export default function GalleryInfoOverlay({ activePortal, children }) {
       <div
         style={{
           ...canvasWrapStyle,
-          transform: panelOpen ? 'translate3d(8vw, 0, 0)' : 'translate3d(0, 0, 0)',
+          transform: 'translate3d(0, 0, 0)',
         }}
       >
         {children}
@@ -97,7 +100,8 @@ export default function GalleryInfoOverlay({ activePortal, children }) {
         aria-modal={panelOpen}
         aria-hidden={!panelOpen}
         style={{
-          ...panelShellStyle,
+          ...panelShellBase,
+          width: panelWidth,
           transform: panelOpen ? 'translateX(0)' : 'translateX(-100%)',
           pointerEvents: panelOpen ? 'auto' : 'none',
         }}
