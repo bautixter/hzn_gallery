@@ -5,6 +5,9 @@ import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
 import GalleryInfoOverlay from './components/GalleryInfoOverlay'
 import LoadingScreen from './components/LoadingScreen'
+import ControlsOverlay from './components/ControlsOverlay'
+import { ControlsHintContext } from './contexts/ControlsHintContext'
+import { useControlsHintState } from './hooks/useControlsHintState'
 import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT, getHubCameraYawTowardDoor } from './config/camera'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
 import { usePointerCoarse } from './hooks/usePointerCoarse'
@@ -32,6 +35,12 @@ function CameraFovSync({ fov }) {
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
+  const { currentPage, visible: hintVisible, showIfUnseen, setCurrentPage, reopenHint, dismissHint } = useControlsHintState()
+
+  // Show navigation hint once the scene is first rendered
+  useEffect(() => {
+    if (loaded) showIfUnseen('navigation')
+  }, [loaded, showIfUnseen])
   const { supported, granted, requestPermission } = useDeviceOrientation()
   const {
     activePortal,
@@ -52,9 +61,14 @@ export default function App() {
     typeof DeviceOrientationEvent.requestPermission === 'function'
 
   return (
-    <>
+    <ControlsHintContext.Provider value={{ showIfUnseen, setCurrentPage }}>
       <LoadingScreen visible={!loaded} />
-      <GalleryInfoOverlay activePortal={activePortal} compactWidth={pointerCoarse ? null : 380}>
+      <ControlsOverlay page={currentPage} visible={hintVisible} onDismiss={dismissHint} />
+      <GalleryInfoOverlay
+        activePortal={activePortal}
+        compactWidth={pointerCoarse ? null : 380}
+        onOpenControls={reopenHint}
+      >
         <Canvas
           camera={{
             position: [0, EYE_HEIGHT, 0],
@@ -89,6 +103,6 @@ export default function App() {
         showGyroPrompt={showGyroPrompt}
         onRequestGyro={requestPermission}
       />
-    </>
+    </ControlsHintContext.Provider>
   )
 }

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { Vector3, Quaternion, Euler, MathUtils } from 'three'
+import { useControlsHint } from '../contexts/ControlsHintContext'
 
 const CANVAS_DEPTH = 0.04
 const LERP = 0.09
@@ -39,6 +40,7 @@ export default function Painting({
   const [focused, setFocused] = useState(false)
 
   const { camera } = useThree()
+  const { showIfUnseen, setCurrentPage } = useControlsHint()
 
   const origEuler = useRef(new Euler(...rotation))
   useEffect(() => { origEuler.current.set(...rotation) }, [rotation])
@@ -55,6 +57,15 @@ export default function Painting({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [focused])
+
+  // Drive the Controls button context and show painting hint once per session
+  useEffect(() => {
+    if (focused) {
+      showIfUnseen('painting')
+    } else {
+      setCurrentPage('navigation')
+    }
+  }, [focused, showIfUnseen, setCurrentPage])
 
   // Capture the orientation the painting should hold while focused (face camera, fixed)
   useEffect(() => {

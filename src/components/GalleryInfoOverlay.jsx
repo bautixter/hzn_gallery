@@ -53,7 +53,7 @@ const iframeStyle = {
   background: 'transparent',
 }
 
-export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null }) {
+export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null, onOpenControls }) {
   const galleryInfoSrc = getGalleryInfoSrc(activePortal)
   const [panelOpen, setPanelOpen] = useState(true)
   const panelWidth = compactWidth != null ? `${compactWidth}px` : '100%'
@@ -114,22 +114,43 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
       </div>
 
       {!panelOpen && (
-        <button
-          type="button"
-          onClick={() => setPanelOpen(true)}
-          style={reopenButtonStyle}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-1px)'
-            e.currentTarget.style.boxShadow =
-              '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = ''
-            e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
-          }}
-        >
-          Info
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => setPanelOpen(true)}
+            style={reopenButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow =
+                '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = ''
+              e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
+            }}
+          >
+            Info
+          </button>
+
+          {onOpenControls && (
+            <button
+              type="button"
+              onClick={onOpenControls}
+              style={{ ...reopenButtonStyle, top: 72 }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)'
+                e.currentTarget.style.boxShadow =
+                  '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = ''
+                e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
+              }}
+            >
+              Controls
+            </button>
+          )}
+        </>
       )}
     </div>
   )

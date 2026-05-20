@@ -8,7 +8,7 @@ const htmlStyle = {
 }
 
 const rootStyle = {
-  fontFamily: 'sans-serif',
+  fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
   color: 'rgba(4, 39, 104, 0.51)',
 }
 
