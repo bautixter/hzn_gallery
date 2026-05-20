@@ -4,10 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Drei Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
     <style>
       :root {
         color-scheme: dark;
-        font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
         background: rgb(226, 230, 236);
         color: rgba(0,0,0,1);
       }
@@ -21,6 +24,7 @@
         margin: 0;
         padding: clamp(32px, 8vw, 96px);
         line-height: 1.55;
+        overflow-x: hidden;
       }
 
       main {
@@ -78,12 +82,39 @@
         transition: opacity 0.15s ease;
       }
       #overlay-close:hover { opacity: 1; }
+
+      .logo-wrap {
+        position: relative;
+        margin: 0 0 1rem;
+      }
+
+      .logo-band {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 180px;
+        background: linear-gradient(to bottom, #3ba9fd 0%, #aed1ea 55%, #e2e6ec 67%, #e2e6ec 65%, transparent 100%);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .logo-wrap img {
+        position: relative;
+        max-width: 300px;
+        width: 100%;
+        display: block;
+        z-index: 1;
+      }
     </style>
   </head>
   <body>
+    <div class="logo-band"></div>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
     <main>
-      <img src="../images/hzn_logo.svg" alt="Drei Gallery" style="max-width:300px;width:100%;display:block;margin:0 0 1rem;" />
+      <div class="logo-wrap">
+        <img src="../images/hzn_logo.svg" alt="Drei Gallery" />
+      </div>
       <p class="lede">
         Vestíbulo de la galería virtual. Cada puerta lleva a una sala placeholder:
         colores, forma central y texto distintos hasta que sustituyas por las escenas finales.

@@ -1,13 +1,25 @@
-import { useEffect } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
+import { useEffect, useRef, useState } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import Scene from './rooms/hub/Scene'
 import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
 import GalleryInfoOverlay from './components/GalleryInfoOverlay'
+import LoadingScreen from './components/LoadingScreen'
 import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT, getHubCameraYawTowardDoor } from './config/camera'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
 import { usePointerCoarse } from './hooks/usePointerCoarse'
 import { useSceneManager } from './utils/useSceneManager'
+
+function FirstFrameNotifier({ onReady }) {
+  const fired = useRef(false)
+  useFrame(() => {
+    if (!fired.current) {
+      fired.current = true
+      onReady()
+    }
+  })
+  return null
+}
 
 function CameraFovSync({ fov }) {
   const { camera } = useThree()
@@ -19,6 +31,7 @@ function CameraFovSync({ fov }) {
 }
 
 export default function App() {
+  const [loaded, setLoaded] = useState(false)
   const { supported, granted, requestPermission } = useDeviceOrientation()
   const {
     activePortal,
@@ -40,6 +53,7 @@ export default function App() {
 
   return (
     <>
+      <LoadingScreen visible={!loaded} />
       <GalleryInfoOverlay activePortal={activePortal} compactWidth={pointerCoarse ? null : 380}>
         <Canvas
           camera={{
@@ -47,8 +61,10 @@ export default function App() {
             rotation: [0, getHubCameraYawTowardDoor(), 0],
             fov,
           }}
+          shadows
           gl={{ antialias: true }}
         >
+          <FirstFrameNotifier onReady={() => setLoaded(true)} />
           <CameraFovSync fov={fov} />
           <Scene
             activePortal={activePortal}

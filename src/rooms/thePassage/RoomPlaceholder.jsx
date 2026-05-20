@@ -1,21 +1,42 @@
+import { useEffect } from 'react'
+import { useThree } from '@react-three/fiber'
+import { Color, Fog } from 'three'
 import RoomSpawnAlign from '../_shared/RoomSpawnAlign'
 import { DEFAULT_ROOM_SPAWN as ROOM_SPAWN } from '../_shared/roomSpawn'
-import SquareRoomShell from '../_shared/SquareRoomShell'
+import { asset } from '../../utils/asset'
+import Painting from '../../components/Painting'
 
-/** Placeholder: sala cálida + cubo central. Sustituir por escena final en esta carpeta. */
+const FOG_COLOR = '#bababa'
+
 export default function RoomPlaceholder() {
+  const { scene } = useThree()
+
+  useEffect(() => {
+    const prevFog = scene.fog
+    const prevBg = scene.background
+    scene.fog = new Fog(FOG_COLOR, 12, 60)
+    scene.background = new Color(FOG_COLOR)
+    return () => {
+      scene.fog = prevFog
+      scene.background = prevBg
+    }
+  }, [scene])
+
   return (
     <RoomSpawnAlign spawn={ROOM_SPAWN}>
-    <SquareRoomShell
-      floorColor="#4a3028"
-      ceilingColor="#2c1c18"
-      wallColors={['#6b4540', '#5a3a35', '#624038', '#55332e']}
-    >
-      <mesh position={[0, 1.15, 0]} castShadow>
-        <boxGeometry args={[1.25, 1.25, 1.25]} />
-        <meshStandardMaterial color="#e8a090" metalness={0.15} roughness={0.45} />
+      <ambientLight intensity={2.5} />
+      <directionalLight position={[0, 20, 0]} intensity={0.6} castShadow />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[4000, 4000]} />
+        <meshStandardMaterial color="#ffffff" />
       </mesh>
-    </SquareRoomShell>
+      <Painting
+        src={asset('/images/d01_01.jpg')}
+        width={1.5}
+        canvasColor={'#ffffff'}
+        position={[0, 1.6, 0]}
+        rotation={[0, Math.PI, 0]}
+      />
     </RoomSpawnAlign>
   )
 }
