@@ -1,11 +1,11 @@
-import ThePassageRoom from './thePassage/RoomPlaceholder'
-import LiminalRoom from './liminal/RoomPlaceholder'
-import ThresholdRoom from './threshold/RoomPlaceholder'
-import BetweenRoom from './between/RoomPlaceholder'
-import TheGateRoom from './theGate/RoomPlaceholder'
-import ApertureRoom from './aperture/RoomPlaceholder'
+import ThePassageRoom from './01_ThePassage'
+import LiminalRoom from './02_Liminal'
+import ThresholdRoom from './03_Threshold'
+import BetweenRoom from './04_Between'
+import TheGateRoom from './05_TheGate'
+import ApertureRoom from './06_Aperture'
 
-/** `doorData[].room.type` → componente 3D de esa carpeta (sustituir `RoomPlaceholder.jsx`). */
+/** `doorData[].room.type` → componente 3D de esa sala (sustituir el `.jsx` correspondiente). */
 export const ROOM_TYPES = {
   thePassage: ThePassageRoom,
   liminal: LiminalRoom,

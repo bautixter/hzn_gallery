@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
-import { computeRoomSpawnGroupTransform } from './roomSpawn'
+import { computeRoomSpawnGroupTransform } from '../utils/roomSpawn'
 
 /**
  * Wrap a room’s contents. On mount, translates (XZ) and rotates (Y) the whole room so the

@@ -1,14 +1,14 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import { Color, Fog } from 'three'
-import RoomSpawnAlign from '../_shared/RoomSpawnAlign'
-import { DEFAULT_ROOM_SPAWN as ROOM_SPAWN } from '../_shared/roomSpawn'
-import { asset } from '../../utils/asset'
-import Painting from '../../components/Painting'
+import RoomSpawnAlign from '../components/RoomSpawnAlign'
+import { DEFAULT_ROOM_SPAWN as ROOM_SPAWN } from '../utils/roomSpawn'
+import { asset } from '../utils/asset'
+import Painting from '../components/Painting'
 
 const FOG_COLOR = '#bababa'
 
-export default function RoomPlaceholder() {
+export default function ThePassage() {
   const { scene } = useThree()
 
   useEffect(() => {

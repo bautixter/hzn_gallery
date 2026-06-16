@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import Scene from './rooms/hub/Scene'
+import Hub from './rooms/Hub'
 import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
 import GalleryInfoOverlay from './components/GalleryInfoOverlay'
@@ -80,7 +80,7 @@ export default function App() {
         >
           <FirstFrameNotifier onReady={() => setLoaded(true)} />
           <CameraFovSync fov={fov} />
-          <Scene
+          <Hub
             activePortal={activePortal}
             onActivate={handleActivate}
             exitChoreography={exitChoreography}
