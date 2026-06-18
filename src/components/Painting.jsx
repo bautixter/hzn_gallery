@@ -12,18 +12,19 @@ const MAX_TILT = Math.PI / 3    // clamp tilt to ±60° so the work never flips 
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 
+const FOCUS_DURATION = 1.2 // seconds for the eased camera fly to / from a work
+const smootherstep = (t) => t * t * t * (t * (t * 6 - 15) + 10) // ease-in-out 0→1
+
 // Pre-allocated — no GC pressure in useFrame
-const _dir = new Vector3()
-const _camPos = new Vector3()
 const _right = new Vector3()
 const _up = new Vector3()
-const _worldTarget = new Vector3()
-const _localTarget = new Vector3()
-const _focusQuat = new Quaternion()
+const _normal = new Vector3()
+const _center = new Vector3()
+const _camTarget = new Vector3()
 const _origQuat = new Quaternion()
 const _origPos = new Vector3()
-const _camQuat = new Quaternion()
 const _parentQuat = new Quaternion()
+const _baseQuat = new Quaternion()
 const _tiltQuat = new Quaternion()
 const _tiltEuler = new Euler()
 const _targetQuat = new Quaternion()
@@ -46,7 +47,7 @@ export default function Painting({
   const spotUp = height * 1.8
   const spotDist = Math.hypot(spotUp, spotFront)
   const spotAngle = Math.min(0.85, Math.atan((Math.max(width, height) * 0.65) / spotDist) + 0.1)
-  const spotIntensity = 11 * spotDist * spotDist // keep illuminance ~constant across sizes (decay 2)
+  const spotIntensity = 5 * spotDist * spotDist // keep illuminance ~constant across sizes (decay 2)
 
   const groupRef = useRef()
   const boxMatRef = useRef()
@@ -55,8 +56,13 @@ export default function Painting({
   const glowRef = useRef(0)
   const zoomRef = useRef(1)
   const panRef = useRef({ x: 0, y: 0 })
-  const tiltRef = useRef({ x: 0, y: 0 }) // pitch / yaw offsets applied on top of the facing orientation
-  const focusQuatRef = useRef(new Quaternion())
+  const tiltRef = useRef({ x: 0, y: 0 }) // pitch / yaw offsets that tilt the work in place
+  const savedCamPos = useRef(new Vector3())   // viewer pose to fly back to on exit
+  const savedCamQuat = useRef(new Quaternion())
+  const fromPos = useRef(new Vector3())       // pose the current transition eases from
+  const fromQuat = useRef(new Quaternion())
+  const wasFocused = useRef(false)            // true once this work has taken the camera
+  const tween = useRef(0)                     // eased 0→1 progress of the active transition
 
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
@@ -97,21 +103,22 @@ export default function Painting({
     }
   }, [focused, showIfUnseen, setCurrentPage])
 
-  // Capture the orientation the painting should hold while focused: its face sits
-  // perpendicular to the camera's view direction (parallel to the screen plane).
-  // Matching the camera's world quaternion is exact, unlike lookAt(camPos) which
-  // tilts slightly once the work is panned off-centre.
+  // Each time focus toggles, capture the pose the camera starts this transition from,
+  // so the eased fly always begins from where the camera actually is (after any pan or
+  // tilt). On first focus we also remember the look-around pose to return to. The work
+  // itself never leaves the wall, so its lighting is unchanged throughout.
   useEffect(() => {
-    if (!focused || !groupRef.current) return
-    const g = groupRef.current
-    camera.getWorldQuaternion(_camQuat)
-    if (g.parent) {
-      g.parent.getWorldQuaternion(_parentQuat)
-      focusQuatRef.current.copy(_parentQuat).invert().multiply(_camQuat)
-    } else {
-      focusQuatRef.current.copy(_camQuat)
+    camera.getWorldPosition(fromPos.current)
+    camera.getWorldQuaternion(fromQuat.current)
+    tween.current = 0
+    if (focused) {
+      if (!wasFocused.current) {
+        savedCamPos.current.copy(fromPos.current)
+        savedCamQuat.current.copy(fromQuat.current)
+      }
+      wasFocused.current = true
+      tiltRef.current = { x: 0, y: 0 } // start each close-up flat-on
     }
-    tiltRef.current = { x: 0, y: 0 } // start each close-up flat-on
   }, [focused, camera])
 
   // Full-screen overlay: blocks DragLook (which listens on canvas), handles pan/zoom
@@ -236,7 +243,7 @@ export default function Painting({
     }
   }, [focused, height])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     const g = groupRef.current
     if (!g) return
 
@@ -245,45 +252,67 @@ export default function Painting({
     glowRef.current = MathUtils.lerp(glowRef.current, glowGoal, 0.1)
     if (boxMatRef.current) boxMatRef.current.emissiveIntensity = glowRef.current
 
+    // The work never leaves its hung position; focus only tilts it in place.
+    _origPos.set(...position)
+    g.position.lerp(_origPos, LERP)
+    _origQuat.setFromEuler(origEuler.current)
     if (focused) {
-      const fovRad = MathUtils.degToRad(camera.fov)
-      // baseDist: distance where painting fills 90% of viewport height at zoom=1
-      // dividing by zoom moves painting closer → appears larger
-      const activeDist = height / (2 * Math.tan(fovRad / 2) * 0.9) / zoomRef.current
-
-      camera.getWorldDirection(_dir)
-      camera.getWorldPosition(_camPos)
-
-      // Pan in the screen plane — along the camera's right/up axes, not world X/Y —
-      // so dragging never pushes the work along the camera's depth axis whatever
-      // direction the viewer is facing (the ring of works in Liminal).
-      _right.setFromMatrixColumn(camera.matrixWorld, 0)
-      _up.setFromMatrixColumn(camera.matrixWorld, 1)
-
-      _worldTarget
-        .copy(_camPos)
-        .addScaledVector(_dir, activeDist)
-        .addScaledVector(_right, panRef.current.x)
-        .addScaledVector(_up, panRef.current.y)
-
-      g.parent
-        ? g.parent.worldToLocal(_localTarget.copy(_worldTarget))
-        : _localTarget.copy(_worldTarget)
-
-      g.position.lerp(_localTarget, LERP)
-
-      // Face the camera (captured on focus), then layer the interactive tilt on top.
       _tiltEuler.set(tiltRef.current.x, tiltRef.current.y, 0)
       _tiltQuat.setFromEuler(_tiltEuler)
-      _targetQuat.copy(focusQuatRef.current).multiply(_tiltQuat)
+      _targetQuat.copy(_origQuat).multiply(_tiltQuat)
       g.quaternion.slerp(_targetQuat, LERP)
-
     } else {
-      _origPos.set(...position)
-      g.position.lerp(_origPos, LERP)
-      _origQuat.setFromEuler(origEuler.current)
       g.quaternion.slerp(_origQuat, LERP)
     }
+
+    if (!wasFocused.current) return // this work never took the camera
+
+    // Advance the eased transition (always 0→1, from the pose captured on the toggle).
+    tween.current = clamp(tween.current + delta / FOCUS_DURATION, 0, 1)
+    const e = smootherstep(tween.current)
+
+    // Destination pose: the work itself while focused, else the saved look-around pose.
+    if (focused) {
+      // World centre and base (untilted) orientation of the work.
+      g.getWorldPosition(_center)
+      if (g.parent) {
+        g.parent.getWorldQuaternion(_parentQuat)
+        _baseQuat.copy(_parentQuat).multiply(_origQuat)
+      } else {
+        _baseQuat.copy(_origQuat)
+      }
+      _normal.set(0, 0, 1).applyQuaternion(_baseQuat) // the work's face direction
+      _right.set(1, 0, 0).applyQuaternion(_baseQuat)
+      _up.set(0, 1, 0).applyQuaternion(_baseQuat)
+
+      // Distance at which the work fills 90% of the viewport — fitting BOTH dimensions
+      // (camera.fov is vertical; width is bound by the horizontal fov via aspect), so
+      // landscape works sit fully in view too. /zoom then dollies closer.
+      const tanV = Math.tan(MathUtils.degToRad(camera.fov) / 2)
+      const fitHeight = height / (2 * tanV * 0.9)
+      const fitWidth = width / (2 * tanV * camera.aspect * 0.9)
+      const activeDist = Math.max(fitHeight, fitWidth) / zoomRef.current
+
+      // Camera sits square-on in front of the work; pan strafes parallel to its plane.
+      // (Moving the camera by −pan reproduces exactly the old "move the work by +pan"
+      // view, so the pan/zoom maths in the overlay need no changes.)
+      _camTarget
+        .copy(_center)
+        .addScaledVector(_normal, activeDist)
+        .addScaledVector(_right, -panRef.current.x)
+        .addScaledVector(_up, -panRef.current.y)
+    } else {
+      _camTarget.copy(savedCamPos.current)
+      _baseQuat.copy(savedCamQuat.current)
+    }
+
+    // Ease from the pose captured when this transition began to the destination, so a
+    // return always starts from wherever the camera currently is (post pan / tilt).
+    camera.position.copy(fromPos.current).lerp(_camTarget, e)
+    camera.quaternion.copy(fromQuat.current).slerp(_baseQuat, e)
+    camera.updateMatrixWorld()
+
+    if (!focused && tween.current === 1) wasFocused.current = false // returned; release
   })
 
   return (
@@ -321,7 +350,8 @@ export default function Painting({
       </mesh>
       <mesh castShadow position={[0, 0, depth / 2 + 0.001]}>
         <planeGeometry args={[width, height]} />
-        <meshBasicMaterial map={texture} />
+        {/* Matte, light-responsive surface — the cone above shapes it like a gallery wash */}
+        <meshStandardMaterial map={texture} roughness={0.9} metalness={0} />
       </mesh>
     </group>
   )
