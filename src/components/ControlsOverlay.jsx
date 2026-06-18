@@ -59,6 +59,28 @@ const IconTouchTapPainting = () => (
   </svg>
 )
 
+const IconMouseTilt = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    {/* mouse body with the scroll-wheel pressed (highlighted) */}
+    <rect x="11" y="9" width="14" height="22" rx="7" stroke="white" strokeWidth="1.5"/>
+    <line x1="18" y1="9" x2="18" y2="17" stroke="white" strokeWidth="1.5"/>
+    <rect x="16" y="11" width="4" height="5" rx="2" fill="white"/>
+    {/* tilt / rotation arc */}
+    <path d="M30 13a9 9 0 0 1 0 16" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M30 29l-3-1.5M30 29l1.5-3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const IconTouchRotate = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    {/* single finger */}
+    <rect x="17" y="17" width="6" height="15" rx="3" stroke="white" strokeWidth="1.5"/>
+    {/* rotation arc above the finger */}
+    <path d="M11 13a9 9 0 0 1 18 0" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M29 13l-1.5-3M29 13l-3 1.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
 const IconTouchPan = () => (
   <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
     <rect x="11" y="12" width="5" height="14" rx="2.5" stroke="white" strokeWidth="1.5"/>
@@ -87,10 +109,12 @@ const HINTS = {
   },
   painting: {
     desktop: [
-      { Icon: IconMousePan, text: 'Click and drag to move around' },
+      { Icon: IconMousePan,  text: 'Click and drag to move around' },
+      { Icon: IconMouseTilt, text: 'Wheel-click and drag to tilt the painting' },
     ],
     touch: [
-      { Icon: IconTouchPan, text: 'Drag or pinch to move around' },
+      { Icon: IconTouchRotate, text: 'Drag one finger to tilt the painting' },
+      { Icon: IconTouchPan,    text: 'Drag or pinch two fingers to move around' },
     ],
   },
 }
