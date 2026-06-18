@@ -15,6 +15,8 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 // Pre-allocated — no GC pressure in useFrame
 const _dir = new Vector3()
 const _camPos = new Vector3()
+const _right = new Vector3()
+const _up = new Vector3()
 const _worldTarget = new Vector3()
 const _localTarget = new Vector3()
 const _focusQuat = new Quaternion()
@@ -163,8 +165,8 @@ export default function Painting({
         tiltRef.current.y = clamp(tiltRef.current.y + dx * TILT_SPEED, -MAX_TILT, MAX_TILT)
         tiltRef.current.x = clamp(tiltRef.current.x + dy * TILT_SPEED, -MAX_TILT, MAX_TILT)
       } else if (pts.length === 1) {
-        // desktop left-drag: pan
-        panRef.current.x -= dx * mpp()
+        // desktop left-drag: pan (X inverted so the work tracks the cursor)
+        panRef.current.x += dx * mpp()
         panRef.current.y -= dy * mpp()
       } else if (pts.length === 2) {
         const [a, b] = pts
@@ -182,7 +184,7 @@ export default function Painting({
         }
 
         if (lastCentroid !== null) {
-          panRef.current.x -= (cx - lastCentroid.x) * mpp()
+          panRef.current.x += (cx - lastCentroid.x) * mpp()
           panRef.current.y -= (cy - lastCentroid.y) * mpp()
         }
 
@@ -252,11 +254,17 @@ export default function Painting({
       camera.getWorldDirection(_dir)
       camera.getWorldPosition(_camPos)
 
+      // Pan in the screen plane — along the camera's right/up axes, not world X/Y —
+      // so dragging never pushes the work along the camera's depth axis whatever
+      // direction the viewer is facing (the ring of works in Liminal).
+      _right.setFromMatrixColumn(camera.matrixWorld, 0)
+      _up.setFromMatrixColumn(camera.matrixWorld, 1)
+
       _worldTarget
         .copy(_camPos)
         .addScaledVector(_dir, activeDist)
-      _worldTarget.x += panRef.current.x
-      _worldTarget.y += panRef.current.y
+        .addScaledVector(_right, panRef.current.x)
+        .addScaledVector(_up, panRef.current.y)
 
       g.parent
         ? g.parent.worldToLocal(_localTarget.copy(_worldTarget))
