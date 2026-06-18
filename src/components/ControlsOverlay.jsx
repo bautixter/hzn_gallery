@@ -92,6 +92,34 @@ const IconTouchPan = () => (
   </svg>
 )
 
+const IconMouseOrbit = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <rect x="13" y="7" width="14" height="20" rx="7" stroke="white" strokeWidth="1.5"/>
+    <line x1="20" y1="7" x2="20" y2="14" stroke="white" strokeWidth="1.5"/>
+    {/* orbit ellipse with arrowhead */}
+    <ellipse cx="20" cy="31" rx="12" ry="4.5" stroke="white" strokeWidth="1.4" opacity="0.85"/>
+    <path d="M8 31l2.4-2.2M8 31l2.8 1.6" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const IconScrollZoom = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <rect x="13" y="9" width="14" height="22" rx="7" stroke="white" strokeWidth="1.5"/>
+    <rect x="18" y="12" width="4" height="6" rx="2" fill="white"/>
+    <path d="M20 6V1 M20 1L17 4 M20 1L23 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 34V39 M20 39L17 36 M20 39L23 36" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const IconTouchPinch = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <rect x="8" y="13" width="5" height="14" rx="2.5" stroke="white" strokeWidth="1.5"/>
+    <rect x="27" y="13" width="5" height="14" rx="2.5" stroke="white" strokeWidth="1.5"/>
+    <path d="M16 20h7 M16 20l2.6-2 M16 20l2.6 2" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M24 20h-7 M24 20l-2.6-2 M24 20l-2.6 2" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
 // ---------------------------------------------------------------------------
 // Hint data
 // ---------------------------------------------------------------------------
@@ -115,6 +143,16 @@ const HINTS = {
     touch: [
       { Icon: IconTouchRotate, text: 'Drag one finger to tilt the painting' },
       { Icon: IconTouchPan,    text: 'Drag or pinch two fingers to move around' },
+    ],
+  },
+  model: {
+    desktop: [
+      { Icon: IconMouseOrbit, text: 'Click and drag to orbit the model' },
+      { Icon: IconScrollZoom, text: 'Scroll to zoom' },
+    ],
+    touch: [
+      { Icon: IconTouchRotate, text: 'Drag one finger to orbit the model' },
+      { Icon: IconTouchPinch,  text: 'Pinch to zoom' },
     ],
   },
 }

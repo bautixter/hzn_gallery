@@ -1,21 +1,95 @@
+import { useEffect } from 'react'
+import { useThree } from '@react-three/fiber'
+import { Color, Fog } from 'three'
+import { SoftShadows } from '@react-three/drei'
 import RoomSpawnAlign from '../components/RoomSpawnAlign'
-import { DEFAULT_ROOM_SPAWN as ROOM_SPAWN } from '../utils/roomSpawn'
-import SquareRoomShell from '../components/SquareRoomShell'
+import Model from '../components/Model'
+import { asset } from '../utils/asset'
 
-/** Placeholder: verdes + cono. Sustituir por escena final. */
+/**
+ * Threshold — sibling of Liminal, but for 3D works. A foggy "infinite" room around a fixed
+ * camera with Teo's sculptures arranged in a ring, each lit by its own cone (see Model).
+ * Look at a work for its info tag; click it to fly in and orbit it. The viewer turns in place.
+ */
+
+const RADIUS = 4.5         // ring radius — where the works stand
+const CEIL_H = 3.2
+const DISPLAY_H = 1.4      // model centre height (near eye level)
+const EXTENT = 200         // floor/ceiling size — runs out past the fog
+const FOG = '#070a09'      // cool near-black the room dissolves into
+
+// Per-model source (under public/models/teo) + info tag. `info` (text + colour) drives the
+// placard that fades in when you look at a work — every field is optional; edit per model.
+const MODELS = [
+  { src: 'Belz mewing 3.glb',        info: { header: 'Belz', subheader: 'Teo · 2025', tags: ['3D'], description: 'A small thing, mid-cry.', color: '#d8ead8' } },
+  { src: 'Cocon finito.glb',         info: { header: 'Cocon', subheader: 'Teo · 2025', tags: ['3D'], description: 'Finished, and waiting.', color: '#d8ead8' } },
+  { src: 'Cocoon yeux opn mid low.glb', info: { header: 'Cocoon, Eyes Open', subheader: 'Teo · 2025', tags: ['3D'], color: '#d8ead8' } },
+  { src: 'Muriculus .glb',           info: { header: 'Muriculus', subheader: 'Teo · 2025', tags: ['3D'], color: '#d8ead8' } },
+  { src: 'Symbiote 1.glb',           info: { header: 'Symbiote', subheader: 'Teo · 2025', tags: ['3D'], description: 'Two forms, one body.', color: '#d8ead8' } },
+]
+
+const N = MODELS.length
+
+const RING = MODELS.map(({ src, info }, i) => {
+  const theta = (i / N) * Math.PI * 2 // position 0 is straight ahead (+z)
+  return {
+    src,
+    info,
+    sin: Math.sin(theta),
+    cos: Math.cos(theta),
+    rotY: theta + Math.PI, // turn the front toward the camera
+  }
+})
+
+const ROOM_SPAWN = { positionXZ: [0, 0], yaw: 0 }
+
+function RoomAtmosphere() {
+  const { scene } = useThree()
+  useEffect(() => {
+    const prevFog = scene.fog
+    const prevBg = scene.background
+    scene.fog = new Fog(FOG, 5, 38)
+    scene.background = new Color(FOG)
+    return () => {
+      scene.fog = prevFog
+      scene.background = prevBg
+    }
+  }, [scene])
+  return null
+}
+
 export default function Threshold() {
   return (
     <RoomSpawnAlign spawn={ROOM_SPAWN}>
-    <SquareRoomShell
-      floorColor="#2d4436"
-      ceilingColor="#1e3028"
-      wallColors={['#3d5c48', '#355445', '#3a5642', '#324f3d']}
-    >
-      <mesh position={[0, 0.85, 0]} rotation={[0, 0, 0]} castShadow>
-        <coneGeometry args={[0.9, 1.6, 32]} />
-        <meshStandardMaterial color="#7ec98a" metalness={0.1} roughness={0.5} />
+      <RoomAtmosphere />
+
+      {/* soft penumbra so the cone shadows land smoothly */}
+      <SoftShadows size={26} samples={16} focus={0.4} />
+
+      {/* cool fill; the per-work cones (in Model) are the key + shadow lights */}
+      <ambientLight intensity={0.3} color="#cfe6d6" />
+      <pointLight position={[0, CEIL_H - 0.3, 0]} intensity={20} distance={18} decay={2} color="#bfe3cf" />
+
+      {/* infinite floor + ceiling, dissolving into fog */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[EXTENT, EXTENT]} />
+        <meshStandardMaterial color="#16201b" roughness={0.9} metalness={0} />
       </mesh>
-    </SquareRoomShell>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, CEIL_H, 0]}>
+        <planeGeometry args={[EXTENT, EXTENT]} />
+        <meshStandardMaterial color="#101814" roughness={1} metalness={0} />
+      </mesh>
+
+      {RING.map(({ src, info, sin, cos, rotY }) => (
+        <Model
+          key={src}
+          src={asset(`/models/teo/${encodeURIComponent(src)}`)}
+          position={[RADIUS * sin, DISPLAY_H, RADIUS * cos]}
+          rotation={[0, rotY, 0]}
+          scaleTo={1.4}
+          info={info}
+        />
+      ))}
     </RoomSpawnAlign>
   )
 }
