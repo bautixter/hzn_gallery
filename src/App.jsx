@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import Hub from './rooms/Hub'
 import CanvasControls from './components/CanvasControls'
@@ -7,6 +7,7 @@ import GalleryInfoOverlay from './components/GalleryInfoOverlay'
 import LoadingScreen from './components/LoadingScreen'
 import ControlsOverlay from './components/ControlsOverlay'
 import { ControlsHintContext } from './contexts/ControlsHintContext'
+import { FocusContext } from './contexts/FocusContext'
 import { useControlsHintState } from './hooks/useControlsHintState'
 import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT, getHubCameraYawTowardDoor } from './config/camera'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
@@ -55,6 +56,14 @@ export default function App() {
   const pointerCoarse = usePointerCoarse()
   const fov = pointerCoarse ? DEFAULT_FOV : DESKTOP_FOV
 
+  // Shared close-up focus registry: any work in view mode hides every other work's info tag.
+  const focusCount = useRef(0)
+  const focusRegistry = useMemo(() => ({
+    acquireFocus: () => { focusCount.current += 1 },
+    releaseFocus: () => { focusCount.current = Math.max(0, focusCount.current - 1) },
+    isAnyFocused: () => focusCount.current > 0,
+  }), [])
+
   const showGyroPrompt =
     supported &&
     !granted &&
@@ -62,6 +71,7 @@ export default function App() {
 
   return (
     <ControlsHintContext.Provider value={{ showIfUnseen, setCurrentPage }}>
+     <FocusContext.Provider value={focusRegistry}>
       <LoadingScreen visible={!loaded} />
       <ControlsOverlay page={currentPage} visible={hintVisible} onDismiss={dismissHint} />
       <GalleryInfoOverlay
@@ -103,6 +113,7 @@ export default function App() {
         showGyroPrompt={showGyroPrompt}
         onRequestGyro={requestPermission}
       />
+     </FocusContext.Provider>
     </ControlsHintContext.Provider>
   )
 }

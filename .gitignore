@@ -3,3 +3,6 @@ dist/
 .DS_Store
 *.local
 .vscode/
+
+# Source archives of models — too large for git, kept locally only
+*.zip

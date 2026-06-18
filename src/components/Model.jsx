@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { Vector3, Quaternion, Matrix4, Box3, MathUtils } from 'three'
 import { useControlsHint } from '../contexts/ControlsHintContext'
+import { useFocusRegistry } from '../contexts/FocusContext'
 import { SHOW_THRESHOLD } from '../config'
 import PaintingLabel from './PaintingLabel'
 
@@ -91,6 +92,22 @@ export default function Model({
 
   const { camera } = useThree()
   const { showIfUnseen, setCurrentPage } = useControlsHint()
+  const { acquireFocus, releaseFocus, isAnyFocused } = useFocusRegistry()
+  const focusHeld = useRef(false)
+
+  // Count this work in the shared registry from the moment it takes the camera until the
+  // fly-back has fully landed (released in useFrame), so other works' gaze tags don't
+  // reappear mid-transition. Release on unmount too, so the count can't leak.
+  useEffect(() => {
+    if (focused && !focusHeld.current) {
+      focusHeld.current = true
+      acquireFocus()
+    }
+  }, [focused, acquireFocus])
+
+  useEffect(() => () => {
+    if (focusHeld.current) { focusHeld.current = false; releaseFocus() }
+  }, [releaseFocus])
 
   useEffect(() => {
     if (spotRef.current && spotTargetRef.current) {
@@ -244,7 +261,7 @@ export default function Model({
       _toModel.copy(_center).sub(_eye)
       camera.getWorldDirection(_camFwd)
       const gazing = _toModel.lengthSq() > 1e-6 && _camFwd.dot(_toModel.normalize()) > SHOW_THRESHOLD
-      const show = gazing && !focused && !wasFocused.current
+      const show = gazing && !focused && !wasFocused.current && !isAnyFocused()
       if (show !== labelShown.current) {
         labelShown.current = show
         setLabelVisible(show)
@@ -284,7 +301,10 @@ export default function Model({
     camera.quaternion.copy(fromQuat.current).slerp(_baseQuat, e)
     camera.updateMatrixWorld()
 
-    if (!focused && tween.current === 1) wasFocused.current = false // returned; release
+    if (!focused && tween.current === 1) {
+      wasFocused.current = false // returned; release the camera
+      if (focusHeld.current) { focusHeld.current = false; releaseFocus() } // re-enable other works' tags
+    }
   })
 
   return (
