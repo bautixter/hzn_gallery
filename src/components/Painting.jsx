@@ -3,6 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { Vector3, Quaternion, Euler, MathUtils } from 'three'
 import { useControlsHint } from '../contexts/ControlsHintContext'
+import { SHOW_THRESHOLD } from '../config'
+import PaintingLabel from './PaintingLabel'
 
 const CANVAS_DEPTH = 0.04
 const LERP = 0.09
@@ -28,6 +30,9 @@ const _baseQuat = new Quaternion()
 const _tiltQuat = new Quaternion()
 const _tiltEuler = new Euler()
 const _targetQuat = new Quaternion()
+const _eye = new Vector3()      // camera world position (gaze test)
+const _toWork = new Vector3()   // camera → work direction
+const _camFwd = new Vector3()   // camera world forward
 
 export default function Painting({
   src,
@@ -37,6 +42,7 @@ export default function Painting({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
   spotlight = true,
+  info = null,
 }) {
   const texture = useTexture(src)
   const aspect = texture.image.width / texture.image.height
@@ -66,6 +72,8 @@ export default function Painting({
 
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [labelVisible, setLabelVisible] = useState(false)
+  const labelShown = useRef(false)
 
   const { camera } = useThree()
   const { showIfUnseen, setCurrentPage } = useControlsHint()
@@ -252,6 +260,20 @@ export default function Painting({
     glowRef.current = MathUtils.lerp(glowRef.current, glowGoal, 0.1)
     if (boxMatRef.current) boxMatRef.current.emissiveIntensity = glowRef.current
 
+    // Info tag: reveal when the viewer looks straight at the work (and isn't focused).
+    if (info) {
+      g.getWorldPosition(_center)
+      camera.getWorldPosition(_eye)
+      _toWork.copy(_center).sub(_eye)
+      camera.getWorldDirection(_camFwd)
+      const gazing = _toWork.lengthSq() > 1e-6 && _camFwd.dot(_toWork.normalize()) > SHOW_THRESHOLD
+      const show = gazing && !focused && !wasFocused.current
+      if (show !== labelShown.current) {
+        labelShown.current = show
+        setLabelVisible(show)
+      }
+    }
+
     // The work never leaves its hung position; focus only tilts it in place.
     _origPos.set(...position)
     g.position.lerp(_origPos, LERP)
@@ -353,6 +375,7 @@ export default function Painting({
         {/* Matte, light-responsive surface — the cone above shapes it like a gallery wash */}
         <meshStandardMaterial map={texture} roughness={0.9} metalness={0} />
       </mesh>
+      <PaintingLabel info={info} visible={labelVisible} anchor={[width / 2 + 0.3, height / 2, 0]} />
     </group>
   )
 }
