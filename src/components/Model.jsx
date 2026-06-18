@@ -59,12 +59,21 @@ export default function Model({
   const spotFront = radius * 1.4
   const spotDist = Math.hypot(spotUp, spotFront)
   const spotAngle = Math.min(0.95, Math.atan((radius * 1.3) / spotDist) + 0.12)
-  const spotIntensity = 6 * spotDist * spotDist // keep illuminance ~constant across sizes (decay 2)
+  const spotIntensity = 4 * spotDist * spotDist // keep illuminance ~constant across sizes (decay 2)
+
+  // Rear fill from floor level behind, so the back stays lit when you orbit around the piece.
+  const backDown = radius * 1.6
+  const backBehind = radius * 1.8
+  const backDist = Math.hypot(backDown, backBehind)
+  const backAngle = Math.min(0.95, Math.atan((radius * 1.3) / backDist) + 0.12)
+  const backIntensity = 2.5 * backDist * backDist // softer than the key light
 
   const groupRef = useRef()
   const innerRef = useRef()
   const spotRef = useRef()
   const spotTargetRef = useRef()
+  const backRef = useRef()
+  const backTargetRef = useRef()
   const hoverScale = useRef(1)
   const zoomRef = useRef(1)
   const orbitRef = useRef({ az: 0, el: 0 })   // azimuth / elevation of the camera around the model
@@ -87,6 +96,10 @@ export default function Model({
     if (spotRef.current && spotTargetRef.current) {
       spotRef.current.target = spotTargetRef.current
       spotRef.current.target.updateMatrixWorld()
+    }
+    if (backRef.current && backTargetRef.current) {
+      backRef.current.target = backTargetRef.current
+      backRef.current.target.updateMatrixWorld()
     }
   }, [radius, spotlight])
 
@@ -301,6 +314,16 @@ export default function Model({
             shadow-normalBias={0.02}
           />
           <object3D ref={spotTargetRef} position={[0, -radius * 0.3, 0]} />
+          <spotLight
+            ref={backRef}
+            position={[0, -backDown, -backBehind]}
+            angle={backAngle}
+            penumbra={0.85}
+            intensity={backIntensity}
+            decay={2}
+            color="#e6f0ff"
+          />
+          <object3D ref={backTargetRef} position={[0, radius * 0.3, 0]} />
         </>
       )}
       <group ref={innerRef}>
