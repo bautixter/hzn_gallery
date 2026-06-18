@@ -327,7 +327,7 @@ export default function Model({
             decay={2}
             color="#fff4e6"
             castShadow
-            shadow-mapSize={[1024, 1024]}
+            shadow-mapSize={[512, 512]}
             shadow-camera-near={0.3}
             shadow-camera-far={20}
             shadow-bias={-0.0005}

@@ -85,6 +85,7 @@ export default function App() {
             rotation: [0, getHubCameraYawTowardDoor(), 0],
             fov,
           }}
+          dpr={[1, 1.5]}
           shadows
           gl={{ antialias: true }}
         >

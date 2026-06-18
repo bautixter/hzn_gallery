@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useThree } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Color, Fog } from 'three'
 import { SoftShadows } from '@react-three/drei'
 import RoomSpawnAlign from '../components/RoomSpawnAlign'
@@ -15,8 +15,8 @@ import { asset } from '../utils/asset'
 const RADIUS = 4.5         // ring radius — where the works stand
 const CEIL_H = 3.2
 const DISPLAY_H = 1.4      // model centre height (near eye level)
-const EXTENT = 200         // floor/ceiling size — runs out past the fog
-const FOG = '#070a09'      // cool near-black the room dissolves into
+const EXTENT = 50          // floor/ceiling size — just past the fog end (38); fog hides the edge
+const FOG = '#070a09'    // cool near-black the room dissolves into
 
 // Per-model source (under public/models/teo) + info tag. `info` (text + colour) drives the
 // placard that fades in when you look at a work — every field is optional; edit per model.
@@ -58,13 +58,42 @@ function RoomAtmosphere() {
   return null
 }
 
+// This room is static — models and their cone lights never move — so its shadow maps only
+// need to be drawn once. Render them for a short settle window after mount (covers async
+// GLTF loads + the spotlights wiring their targets), then freeze, sparing every later frame
+// five shadow passes. Restores auto-update on exit so the Hub's animated doors still cast live.
+function FreezeShadows({ settle = 0.6 }) {
+  const { gl } = useThree()
+  const elapsed = useRef(0)
+  const frozen = useRef(false)
+  useEffect(() => {
+    const prevAuto = gl.shadowMap.autoUpdate
+    gl.shadowMap.autoUpdate = false
+    gl.shadowMap.needsUpdate = true
+    elapsed.current = 0
+    frozen.current = false
+    return () => {
+      gl.shadowMap.autoUpdate = prevAuto
+      gl.shadowMap.needsUpdate = true
+    }
+  }, [gl])
+  useFrame((_, delta) => {
+    if (frozen.current) return
+    elapsed.current += delta
+    gl.shadowMap.needsUpdate = true // keep drawing shadows while the scene settles
+    if (elapsed.current >= settle) frozen.current = true
+  })
+  return null
+}
+
 export default function Threshold() {
   return (
     <RoomSpawnAlign spawn={ROOM_SPAWN}>
       <RoomAtmosphere />
+      <FreezeShadows />
 
       {/* soft penumbra so the cone shadows land smoothly */}
-      <SoftShadows size={26} samples={16} focus={0.4} />
+      <SoftShadows size={26} samples={8} focus={0.4} />
 
       {/* cool fill; the per-work cones (in Model) are the key + shadow lights */}
       <ambientLight intensity={0.3} color="#cfe6d6" />
