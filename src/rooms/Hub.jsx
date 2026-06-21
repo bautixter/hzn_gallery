@@ -28,7 +28,7 @@ export default function Hub({
 
   return (
     <>
-      <Environment files={asset('/textures/citrus_orchard_puresky_4k.hdr')} background backgroundBlurriness={0} />
+      <Environment files={asset('/textures/citrus_orchard_puresky_2k.hdr')} background backgroundBlurriness={0} />
       <HazeDome />
       <Floor />
       <Doors

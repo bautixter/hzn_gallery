@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import { Color, Fog, CanvasTexture, RepeatWrapping, SRGBColorSpace } from 'three'
-import { SoftShadows } from '@react-three/drei'
+import { SoftShadows, useTexture } from '@react-three/drei'
 import RoomSpawnAlign from '../components/RoomSpawnAlign'
 import Painting from '../components/Painting'
 import { asset } from '../utils/asset'
@@ -44,6 +44,11 @@ const RING = PAINTINGS.map(({ src, info }, i) => {
 })
 
 const ROOM_SPAWN = { positionXZ: [0, 0], yaw: 0 }
+
+// Warm the texture cache at module load (registry imports this room at app boot), so the
+// ~0.8 MB of works download in the background while the viewer is still in the hub and the
+// room renders instantly on entry instead of blocking on the fetch.
+PAINTINGS.forEach(({ src }) => useTexture.preload(asset(`/images/${src}`)))
 
 /**
  * Procedural plank texture: base colour + grain + plank seams.
