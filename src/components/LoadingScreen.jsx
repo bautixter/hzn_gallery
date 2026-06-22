@@ -25,24 +25,25 @@ export default function LoadingScreen({ visible }) {
       transition: 'opacity 0.6s ease',
       pointerEvents: visible ? 'all' : 'none',
     }}>
-      <div style={{ display: 'flex', gap: 14 }}>
-        {[0, 1, 2, 3].map(i => (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 18px)', gap: 2 }}>
+        {/* delays ordered TL, TR, BR, BL so the pulse travels around the square (a circle) */}
+        {[0, 1, 3, 2].map(i => (
           <div
             key={i}
             style={{
               width: 18,
               height: 18,
-              background: '#000',
-              animation: 'sq 1.4s ease-in-out infinite',
-              animationDelay: `${i * 0.22}s`,
+              background: '#fff',
+              animation: 'sq 1s ease-in-out infinite',
+              animationDelay: `${i * 0.25}s`, // 1s / 4 → evenly spaced so the chase loops seamlessly
             }}
           />
         ))}
       </div>
       <style>{`
         @keyframes sq {
-          0%, 100% { opacity: 0.08; }
-          40%       { opacity: 1; }
+          0%   { background: #2c2c2c; }
+          100% { background: #fff; }
         }
       `}</style>
     </div>
