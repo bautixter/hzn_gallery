@@ -7,7 +7,7 @@ import Painting from '../components/Painting'
 import { asset } from '../utils/asset'
 
 /**
- * Liminal — an "infinite" wooden room around a fixed camera. Only a floor and a
+ * Light and Wood — an "infinite" wooden room around a fixed camera. Only a floor and a
  * ceiling (no walls); both use a seamlessly-tiling procedural wood texture whose
  * planks run off into fog, so the space reads as endless. Seven works hang in a
  * ring, each lit by its own cone (see Painting). The viewer only turns in place.
@@ -125,7 +125,7 @@ function RoomAtmosphere() {
   return null
 }
 
-export default function Liminal() {
+export default function LightAndWood() {
   const { floorTex, ceilTex } = useMemo(() => {
     const floorTex = makeWoodTexture({ base: '#5a3b22', planks: 7 })
     floorTex.repeat.set(48, 48)

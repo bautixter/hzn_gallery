@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Between</title>
+    <title>Liminal</title>
     <style>
       :root {
         color-scheme: dark;
         font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: linear-gradient(200deg, rgba(40, 28, 18, 0.97), rgba(18, 12, 8, 0.99));
-        color: rgba(255, 236, 210, 0.93);
+        background: linear-gradient(180deg, rgb(42, 16, 3), rgb(44, 24, 11));
+        color: rgba(220, 230, 248, 0.92);
       }
 
       * {
@@ -30,15 +30,15 @@
 
       h1 {
         margin: 0 0 0.75rem;
-        color: rgba(255, 220, 160, 0.98);
+        color: rgba(235, 242, 255, 0.97);
         font-size: clamp(2rem, 5vw, 4.2rem);
         line-height: 1.04;
-        letter-spacing: -0.04em;
+        letter-spacing: -0.03em;
       }
 
       .lede {
         margin: 0 0 2.4rem;
-        color: rgba(230, 190, 140, 0.86);
+        color: rgba(170, 190, 220, 0.88);
         font-size: clamp(1.1rem, 2vw, 1.35rem);
       }
 
@@ -48,15 +48,14 @@
 
       h2 {
         margin: 0 0 0.55rem;
-        color: rgba(255, 180, 90, 0.92);
-        font-size: 0.78rem;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
+        color: rgb(189, 112, 74);
+        font-size: 0.9rem;
+        font-weight: 700;
       }
 
       p {
         margin: 0;
-        color: rgba(250, 225, 195, 0.88);
+        color: rgba(200, 215, 235, 0.9);
       }
 
       #overlay-close {
@@ -86,33 +85,30 @@
   <body>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
     <main>
-      <h1>Between — anillo y resonancia</h1>
+      <h1>Liminal — esfera y penumbra</h1>
       <p class="lede">
-        Sala cálida con un toro dorado: sugiere bucle, sonido o proyección. Placeholder para
-        vídeo dual o pieza sonora.
+        Sala fría, casi crepuscular: la esfera sugiere lente, luna o foco. Placeholder para
+        fotografía, vídeo o instalación lumínica.
       </p>
 
       <section>
-        <h2>Metáfora</h2>
+        <h2>Luz y borde</h2>
         <p>
-          El anillo sin fin encaja con “entre” estados. rooms/Between.jsx centraliza
-          el volumen para que lo sustituyas por pantallas o altavoces virtuales.
+          Los muros azul pizarra encuadran un único volumen curvo. Piensa en HDRI, spots o
+          emissive al reemplazar la escena.
         </p>
       </section>
 
       <section>
         <h2>Autores</h2>
-        <p>public/gallery-info/between.html — lista de artistas, técnico de sonido, etc.</p>
+        <p>Créditos en public/gallery-info/light-and-wood.html — obra, curaduría, música.</p>
       </section>
 
       <section>
-        <h2>Estética del panel</h2>
-        <p>
-          Tipografía sans y acentos ámbar; alinea este HTML con la sala o cámbialo a frío si
-          tu obra lo pide.
-        </p>
+        <h2>Archivo 3D</h2>
+        <p>rooms/Liminal.jsx: reemplaza el mesh por tu composición o importa desde /public.</p>
       </section>
     </main>
-    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(255,180,90)'},'*')</script>
+    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(43, 20, 7)', fg:'rgb(255,255,255)'},'*')</script>
   </body>
 </html>

@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>The Gate</title>
+    <title>Threshold</title>
     <style>
       :root {
         color-scheme: dark;
         font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: linear-gradient(175deg, rgba(36, 24, 48, 0.98), rgba(16, 10, 26, 0.99));
-        color: rgba(238, 228, 255, 0.93);
+        background: linear-gradient(165deg, rgba(18, 36, 28, 0.97), rgba(12, 24, 18, 0.99));
+        color: rgba(220, 245, 228, 0.93);
       }
 
       * {
@@ -30,14 +30,14 @@
 
       h1 {
         margin: 0 0 0.75rem;
-        font-size: clamp(2rem, 5vw, 4.2rem);
-        line-height: 1.04;
+        font-size: clamp(2rem, 5vw, 4rem);
+        line-height: 1.05;
         letter-spacing: -0.04em;
       }
 
       .lede {
         margin: 0 0 2.4rem;
-        color: rgba(190, 170, 220, 0.86);
+        color: rgba(170, 210, 185, 0.85);
         font-size: clamp(1.1rem, 2vw, 1.35rem);
       }
 
@@ -47,15 +47,15 @@
 
       h2 {
         margin: 0 0 0.55rem;
-        color: rgba(210, 160, 255, 0.9);
+        color: rgba(120, 220, 160, 0.9);
         font-size: 0.78rem;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
       }
 
       p {
         margin: 0;
-        color: rgba(238, 228, 255, 0.88);
+        color: rgba(220, 245, 228, 0.9);
       }
 
       #overlay-close {
@@ -85,33 +85,39 @@
   <body>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
     <main>
-      <h1>The Gate — octaedro y umbral</h1>
+      <h1>Threshold — cono sobre verde</h1>
       <p class="lede">
-        Sala violeta con un octaedro como “gema” central. Placeholder para mixed media,
-        collage 3D o puerta simbólica.
+        Sala vegetal y un cono como gesto abstracto. Placeholder para pintura mural, objeto
+        cónico o pieza que dialogue con el suelo.
       </p>
 
       <section>
-        <h2>Montaje</h2>
+        <h2>Composición</h2>
         <p>
-          Ocho caras, un solo volumen: fácil de reconocer al probar la galería. Reemplaza en
-          rooms/TheGate.jsx.
+          El cono apunta al techo; úsalo como referencia de escala. rooms/Threshold.jsx
+          es el punto de partida.
         </p>
       </section>
 
       <section>
         <h2>Autores</h2>
-        <p>public/gallery-info/the-gate.html — créditos y enlaces externos si los hay.</p>
+        <p>Edita créditos y fecha en public/gallery-info/microfriends.html.</p>
       </section>
 
       <section>
-        <h2>Panel editorial</h2>
+        <h2>Paleta</h2>
         <p>
-          Estilo lavanda y magenta suave en los títulos; coherente con las paredes de la sala
-          placeholder.
+          Verdes apagados y un acento menta en el volumen. Ajusta este documento HTML para
+          diseñar el panel editorial.
         </p>
       </section>
     </main>
-    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(210,160,255)'},'*')</script>
+    <script>
+      window.parent.postMessage({
+        type:'overlay:accent',
+        bg:'rgb(14, 29, 22)',
+        fg:'rgb(205, 230, 214)'},
+        '*')
+      </script>
   </body>
 </html>

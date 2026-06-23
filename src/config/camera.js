@@ -1,10 +1,11 @@
-import { DOOR_COUNT, DOOR_RADIUS } from '../config'
+import { DOOR_RADIUS } from '../config'
+import { DOOR_DATA } from '../data/doorData'
 
 export const EYE_HEIGHT = 1.6
 export const DEFAULT_FOV = 50
 export const DESKTOP_FOV = 60
 
-/** `DOOR_DATA` index to face when entering the hub (0 = The Passage / Room I). */
+/** `DOOR_DATA` index to face when entering the hub (0 = Garabatos). */
 export const HUB_DEFAULT_FACE_DOOR_INDEX = 0
 
 /**
@@ -12,7 +13,7 @@ export const HUB_DEFAULT_FACE_DOOR_INDEX = 0
  * Matches door placement: `(sin(angle)*R, cos(angle)*R)` with `angle = (2π/N)*doorIndex`.
  */
 export function getHubCameraYawTowardDoor(doorIndex = HUB_DEFAULT_FACE_DOOR_INDEX) {
-  const ringAngle = (2 * Math.PI / DOOR_COUNT) * doorIndex
+  const ringAngle = (2 * Math.PI / DOOR_DATA.length) * doorIndex
   const tx = Math.sin(ringAngle) * DOOR_RADIUS
   const tz = Math.cos(ringAngle) * DOOR_RADIUS
   return Math.atan2(tx, tz) + Math.PI

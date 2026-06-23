@@ -1,6 +1,5 @@
 import { Vector3 } from 'three'
 
-export const DOOR_COUNT = 6
 export const DOOR_RADIUS = 5
 
 export const SHOW_THRESHOLD = 0.85

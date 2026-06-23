@@ -8,7 +8,7 @@ import Painting from '../components/Painting'
 
 const FOG_COLOR = '#bababa'
 
-export default function ThePassage() {
+export default function Garabatos() {
   const { scene } = useThree()
 
   useEffect(() => {

@@ -7,7 +7,7 @@ import Model from '../components/Model'
 import { asset } from '../utils/asset'
 
 /**
- * Threshold — sibling of Liminal, but for 3D works. A foggy "infinite" room around a fixed
+ * Microfriends — sibling of Light and Wood, but for 3D works. A foggy "infinite" room around a fixed
  * camera with Teo's sculptures arranged in a ring, each lit by its own cone (see Model).
  * Look at a work for its info tag; click it to fly in and orbit it. The viewer turns in place.
  */
@@ -86,7 +86,7 @@ function FreezeShadows({ settle = 0.6 }) {
   return null
 }
 
-export default function Threshold() {
+export default function Microfriends() {
   return (
     <RoomSpawnAlign spawn={ROOM_SPAWN}>
       <RoomAtmosphere />
