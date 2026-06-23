@@ -40,7 +40,7 @@ export default function Model({
 
   // Clone (so the same GLTF can appear more than once), recentre on the origin, scale to a
   // common display size, and enable shadows. `radius` is the bounding sphere used to frame it.
-  const { model, offset, fitScale, radius } = useMemo(() => {
+  const { model, offset, fitScale, radius, half } = useMemo(() => {
     const model = scene.clone(true)
     model.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true } })
     model.updateWorldMatrix(true, true)
@@ -51,8 +51,9 @@ export default function Model({
     const maxDim = Math.max(size.x, size.y, size.z) || 1
     const fitScale = scaleTo / maxDim
     const radius = 0.5 * size.length() * fitScale
+    const half = [0.5 * size.x * fitScale, 0.5 * size.y * fitScale, 0.5 * size.z * fitScale] // scaled half-extents
     const offset = center.multiplyScalar(-fitScale) // recentre after scaling
-    return { model, offset: offset.toArray(), fitScale, radius }
+    return { model, offset: offset.toArray(), fitScale, radius, half }
   }, [scene, scaleTo])
 
   // Cone light sized to this work, from front-and-above (model sits at the group origin).
@@ -349,7 +350,7 @@ export default function Model({
       <group ref={innerRef}>
         <primitive object={model} position={offset} scale={fitScale} />
       </group>
-      <PaintingLabel info={info} visible={labelVisible} anchor={[radius + 0.3, radius, 0]} />
+      <PaintingLabel info={info} visible={labelVisible} anchor={[half[0] + 0.2, half[1] * 0.7, 0]} />
     </group>
   )
 }
