@@ -18,7 +18,7 @@ const RADIUS = 5 // ring radius — where the works hang
 const CEIL_H = 3.2
 const EYE = 1.6 // matches EYE_HEIGHT (camera at the centre)
 const EXTENT = 200 // floor/ceiling size — runs out past the fog
-const FOG = '#0d0905' // warm near-black the planks dissolve into
+const FOG = '#000000' // warm near-black the planks dissolve into
 
 // Per-painting source + info tag. `info` (text + colour) drives the placard that fades
 // in when you look at a work — every field is optional; edit freely per painting.
@@ -155,10 +155,10 @@ export default function LightAndWood() {
         <planeGeometry args={[EXTENT, EXTENT]} />
         <meshStandardMaterial map={floorTex} roughness={0.55} metalness={0} />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, CEIL_H, 0]}>
+      {/* <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, CEIL_H, 0]}>
         <planeGeometry args={[EXTENT, EXTENT]} />
         <meshStandardMaterial map={ceilTex} roughness={0.8} metalness={0} />
-      </mesh>
+      </mesh> */}
 
       {RING.map(({ src, info, sin, cos, rotY }) => (
         <Painting
