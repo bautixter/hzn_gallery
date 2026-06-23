@@ -2,7 +2,7 @@ import { DOOR_RADIUS } from '../config'
 import { DOOR_DATA } from '../data/doorData'
 
 export const EYE_HEIGHT = 1.6
-export const DEFAULT_FOV = 50
+export const DEFAULT_FOV = 65 // mobile (vertical FOV; phones are narrow, so this widens the view)
 export const DESKTOP_FOV = 60
 
 /** `DOOR_DATA` index to face when entering the hub (0 = Garabatos). */
