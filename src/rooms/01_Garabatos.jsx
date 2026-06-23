@@ -34,7 +34,7 @@ export default function Garabatos() {
         src={asset('/images/d01_01.jpg')}
         width={1.5}
         canvasColor={'#ffffff'}
-        position={[0, 1.6, -2.2]}
+        position={[0, 1.6, 0]}
         rotation={[0, Math.PI, 0]}
         spotlight={{ intensity: 5, color: '#ffffff', angle: 0.7, penumbra: 0.6, front: 1, up: 2, targetY: 0, decay: 1, castShadow: false }}
         info={{
