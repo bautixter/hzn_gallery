@@ -1,51 +1,74 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { useProgress } from '@react-three/drei'
 
 const FADE_MS = 400
+const SPINNER_THRESHOLD_MS = 600
+const SAFETY_TIMEOUT_MS = 8000
 
 export function useSceneManager() {
   const [activePortal, setActivePortal] = useState(null)
   const [overlayOpacity, setOverlayOpacity] = useState(null)
+  const [showSpinner, setShowSpinner] = useState(false)
+  const [waitingForScene, setWaitingForScene] = useState(false)
   const [exitChoreography, setExitChoreography] = useState(null)
   const pendingRef = useRef(null)
-  const timerIds   = useRef([])
+  const timerIds = useRef([])
   const activePortalRef = useRef(null)
   const doorSnapshotRef = useRef(null)
+
+  const { active } = useProgress()
 
   useEffect(() => {
     activePortalRef.current = activePortal
   }, [activePortal])
 
-  const registerDoorInteractionFreeze = useCallback((snapshot) => {
-    doorSnapshotRef.current = snapshot
+  const fadeOut = useCallback(() => {
+    timerIds.current.forEach(clearTimeout)
+    timerIds.current = []
+    setShowSpinner(false)
+    setWaitingForScene(false)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setOverlayOpacity(0)
+      const id = setTimeout(() => setOverlayOpacity(null), FADE_MS)
+      timerIds.current.push(id)
+    }))
   }, [])
+
+  // Fade out as soon as three.js loading completes
+  useEffect(() => {
+    if (!waitingForScene || active) return
+    fadeOut()
+  }, [active, waitingForScene, fadeOut])
 
   const triggerTransition = useCallback((action) => {
     timerIds.current.forEach(clearTimeout)
     timerIds.current = []
 
-    const schedule = (ms, fn) => {
-      const id = setTimeout(fn, ms)
-      timerIds.current.push(id)
-    }
-
     pendingRef.current = action
     setOverlayOpacity(0)
 
-    // Double rAF: wait for layout/paint so opacity:0 is committed before animating to 1
     requestAnimationFrame(() => requestAnimationFrame(() => {
       setOverlayOpacity(1)
 
-      schedule(FADE_MS, () => {
+      const id = setTimeout(() => {
         pendingRef.current?.()
         pendingRef.current = null
 
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          setOverlayOpacity(0)
-          schedule(FADE_MS, () => setOverlayOpacity(null))
-        }))
-      })
+        setWaitingForScene(true)
+
+        // Show spinner after threshold if scene still loading
+        timerIds.current.push(
+          setTimeout(() => setShowSpinner(true), SPINNER_THRESHOLD_MS)
+        )
+        // Safety net: fade out even if useProgress never signals
+        timerIds.current.push(
+          setTimeout(fadeOut, SAFETY_TIMEOUT_MS)
+        )
+      }, FADE_MS)
+
+      timerIds.current.push(id)
     }))
-  }, [])
+  }, [fadeOut])
 
   const handleActivate = useCallback((i) => {
     triggerTransition(() => setActivePortal(i))
@@ -69,9 +92,14 @@ export function useSceneManager() {
     doorSnapshotRef.current = null
   }, [])
 
+  const registerDoorInteractionFreeze = useCallback((snapshot) => {
+    doorSnapshotRef.current = snapshot
+  }, [])
+
   return {
     activePortal,
     overlayOpacity,
+    showSpinner,
     handleActivate,
     handleBack,
     FADE_MS,

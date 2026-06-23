@@ -46,6 +46,7 @@ export default function App() {
   const {
     activePortal,
     overlayOpacity,
+    showSpinner,
     handleActivate,
     handleBack,
     FADE_MS,
@@ -109,6 +110,7 @@ export default function App() {
       <AppChrome
         overlayOpacity={overlayOpacity}
         FADE_MS={FADE_MS}
+        showSpinner={showSpinner}
         activePortal={activePortal}
         onBack={handleBack}
         showGyroPrompt={showGyroPrompt}

@@ -3,7 +3,10 @@ const overlayStyle = {
   inset: 0,
   background: '#000',
   pointerEvents: 'none',
-  zIndex: 1000,
+  zIndex: 9999,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const backButtonStyle = {
@@ -39,6 +42,7 @@ const gyroButtonStyle = {
 export default function AppChrome({
   overlayOpacity,
   FADE_MS,
+  showSpinner,
   activePortal,
   onBack,
   showGyroPrompt,
@@ -53,7 +57,34 @@ export default function AppChrome({
             opacity: overlayOpacity,
             transition: `opacity ${FADE_MS}ms ease`,
           }}
-        />
+        >
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 18px)',
+            gap: 2,
+            opacity: showSpinner ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+          }}>
+            {[0, 1, 3, 2].map(i => (
+              <div
+                key={i}
+                style={{
+                  width: 18,
+                  height: 18,
+                  background: 'rgba(255,255,255,0.88)',
+                  animation: 'sq-dark 1s ease-in-out infinite',
+                  animationDelay: `${i * 0.25}s`,
+                }}
+              />
+            ))}
+          </div>
+          <style>{`
+            @keyframes sq-dark {
+              0%   { background: rgba(255,255,255,0.88); }
+              100% { background: rgba(255,255,255,0.07); }
+            }
+          `}</style>
+        </div>
       )}
 
       {activePortal !== null && (
