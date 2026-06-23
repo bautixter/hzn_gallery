@@ -44,6 +44,7 @@ export default function Painting({
   rotation = [0, 0, 0],
   spotlight = true,
   info = null,
+  hoverPop = 0.05, // metres the work eases toward the viewer on hover (0 to disable)
 }) {
   const texture = useTexture(src)
   const aspect = texture.image.width / texture.image.height
@@ -300,7 +301,12 @@ export default function Painting({
     }
 
     // The work never leaves its hung position; focus only tilts it in place.
+    // While resting, a hover eases it slightly toward the viewer along its face normal.
     _origPos.set(...position)
+    if (hoverPop && hovered && !focused && !wasFocused.current) {
+      _normal.set(0, 0, 1).applyEuler(origEuler.current)
+      _origPos.addScaledVector(_normal, hoverPop)
+    }
     g.position.lerp(_origPos, LERP)
     _origQuat.setFromEuler(origEuler.current)
     if (focused) {
