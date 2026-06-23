@@ -3,13 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>The Passage</title>
+    <title>Garabatos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       :root {
-        color-scheme: dark;
-        font-family: Georgia, "Times New Roman", serif;
-        background: linear-gradient(170deg, rgba(48, 26, 22, 0.97), rgba(24, 14, 12, 0.99));
-        color: rgba(255, 232, 220, 0.94);
+        color-scheme: light;
+        font-family: 'Caveat', 'Comic Sans MS', cursive;
+        background: linear-gradient(170deg, rgba(255, 255, 255, 0.97), rgba(239, 236, 225, 0.99));
+        color: rgba(0, 0, 0, 0.94);
       }
 
       * {
@@ -20,7 +23,7 @@
         min-height: 100vh;
         margin: 0;
         padding: clamp(32px, 8vw, 96px);
-        line-height: 1.55;
+        line-height: 1.45;
       }
 
       main {
@@ -29,35 +32,59 @@
       }
 
       h1 {
-        margin: 0 0 0.75rem;
-        color: rgba(255, 240, 230, 0.98);
-        font-size: clamp(2rem, 5vw, 4rem);
-        font-weight: 500;
-        line-height: 1.05;
+        margin: 0 0 0.2rem;
+        color: rgba(0, 0, 0, 0.98);
+        font-size: clamp(3.2rem, 9vw, 6rem);
+        font-weight: 700;
+        line-height: 1;
       }
 
-      .lede {
-        margin: 0 0 2.4rem;
-        color: rgba(230, 190, 170, 0.88);
-        font-size: clamp(1.1rem, 2vw, 1.35rem);
+      .byline {
+        margin: 0 0 2.6rem;
+        color: rgba(0, 0, 0, 0.7);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1rem;
+        font-style: italic;
       }
 
-      section {
-        margin: 0 0 1.9rem;
-      }
-
-      h2 {
-        margin: 0 0 0.55rem;
-        color: rgba(255, 160, 120, 0.9);
-        font-family: system-ui, sans-serif;
-        font-size: 0.78rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-
-      p {
+      .quote {
+        position: relative;
+        z-index: 0;
         margin: 0;
-        color: rgba(250, 220, 205, 0.9);
+        font-size: clamp(1.7rem, 3.6vw, 2.7rem);
+        line-height: 1.4;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.96);
+      }
+
+      /* Oversized magazine-style opening quote sitting behind the text */
+      .quote::before {
+        content: "\201C";
+        position: absolute;
+        z-index: -1;
+        top: -0.32em;
+        left: 0;
+        font-size: 6.5em;
+        line-height: 1;
+        color: rgba(67, 67, 67, 0.16);
+        pointer-events: none;
+      }
+
+      .divider {
+        width: 56px;
+        height: 2px;
+        margin: 2.4rem 0;
+        border: 0;
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .translation {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.1rem, 2.1vw, 1.4rem);
+        line-height: 1.55;
+        color: rgba(0, 0, 0, 0.7);
+        font-style: italic;
       }
 
       #overlay-close {
@@ -69,9 +96,9 @@
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: inherit;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: rgba(0, 0, 0, 0.85);
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.18);
         border-radius: 999px;
         cursor: pointer;
         opacity: 0.6;
@@ -87,33 +114,17 @@
   <body>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
     <main>
-      <h1>The Passage — volumen cúbico</h1>
-      <p class="lede">
-        Sala de tonos tierra y un cubo como pieza única. Pensada como placeholder de
-        escultura e instalación: aquí irá tu modelo o composición final.
-      </p>
+      <h1>Marginalia</h1>
+      <p class="byline">Juan Bautista Aballay, 2023 – 2026</p>
 
-      <section>
-        <h2>Concepto</h2>
-        <p>
-          El umbral como objeto: el cubo marca un centro gravedad en la sala. Sustituye la
-          primitiva por malla, GLB o instancing según tu pieza.
-        </p>
-      </section>
+      <blockquote class="quote">
+        Oda a los dibujos en los márgenes de la libreta, a los garabatos hechos en infinidad de clases. 
+      </blockquote>
 
-      <section>
-        <h2>Autores</h2>
-        <p>Añade créditos de obra, sonido o diseño en public/gallery-info/garabatos.html.</p>
-      </section>
+      <hr class="divider" />
 
-      <section>
-        <h2>Nota técnica</h2>
-        <p>
-          Escena en rooms/ThePassage.jsx. Mantiene iluminación básica y sala 8x8;
-          copia el archivo o renómbralo al integrar assets.
-        </p>
-      </section>
+      <p class="translation">An ode to the drawings in the margins of the notebook, to the doodles made across countless classes.</p>
     </main>
-    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(255,160,120)'},'*')</script>
+    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(245, 243, 236)'},'*')</script>
   </body>
 </html>
