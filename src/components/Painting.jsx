@@ -50,11 +50,19 @@ export default function Painting({
   const height = width / aspect
 
   // Cone light sized to this work, lit from front-and-above (local +z is the face).
-  const spotFront = height * 1.2
-  const spotUp = height * 1.8
+  // `spotlight` is `true`/`false` to toggle, or an object overriding any default below.
+  const spotEnabled = spotlight !== false
+  const spotOpts = spotlight && typeof spotlight === 'object' ? spotlight : {}
+  const spotFront = spotOpts.front ?? height * 1.2
+  const spotUp = spotOpts.up ?? height * 1.8
   const spotDist = Math.hypot(spotUp, spotFront)
-  const spotAngle = Math.min(0.85, Math.atan((Math.max(width, height) * 0.65) / spotDist) + 0.1)
-  const spotIntensity = 5 * spotDist * spotDist // keep illuminance ~constant across sizes (decay 2)
+  const spotAngle = spotOpts.angle ?? Math.min(0.85, Math.atan((Math.max(width, height) * 0.65) / spotDist) + 0.1)
+  const spotIntensity = spotOpts.intensity ?? 5 * spotDist * spotDist // keep illuminance ~constant across sizes (decay 2)
+  const spotPenumbra = spotOpts.penumbra ?? 0.85
+  const spotDecay = spotOpts.decay ?? 2
+  const spotColor = spotOpts.color ?? '#fff4e6'
+  const spotTargetY = spotOpts.targetY ?? -height * 0.4
+  const spotCastShadow = spotOpts.castShadow ?? true
 
   const groupRef = useRef()
   const boxMatRef = useRef()
@@ -105,7 +113,7 @@ export default function Painting({
       spotRef.current.target = spotTargetRef.current
       spotRef.current.target.updateMatrixWorld()
     }
-  }, [height, spotlight])
+  }, [height, spotEnabled, spotTargetY])
 
   useEffect(() => {
     document.body.style.cursor = hovered ? 'pointer' : ''
@@ -366,24 +374,24 @@ export default function Painting({
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >
-      {spotlight && (
+      {spotEnabled && (
         <>
           <spotLight
             ref={spotRef}
             position={[0, spotUp, spotFront]}
             angle={spotAngle}
-            penumbra={0.85}
+            penumbra={spotPenumbra}
             intensity={spotIntensity}
-            decay={2}
-            color="#fff4e6"
-            castShadow
+            decay={spotDecay}
+            color={spotColor}
+            castShadow={spotCastShadow}
             shadow-mapSize={[1024, 1024]}
             shadow-camera-near={0.3}
             shadow-camera-far={20}
             shadow-bias={-0.0005}
             shadow-normalBias={0.02}
           />
-          <object3D ref={spotTargetRef} position={[0, -height * 0.4, 0]} />
+          <object3D ref={spotTargetRef} position={[0, spotTargetY, 0]} />
         </>
       )}
       <mesh>
