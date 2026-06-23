@@ -12,7 +12,7 @@ import { asset } from '../utils/asset'
  * Look at a work for its info tag; click it to fly in and orbit it. The viewer turns in place.
  */
 
-const RADIUS = 4.5         // ring radius — where the works stand
+const RADIUS = 3         // ring radius — where the works stand
 const CEIL_H = 3.2
 const DISPLAY_H = 1.4      // model centre height (near eye level)
 const EXTENT = 50          // floor/ceiling size — just past the fog end (38); fog hides the edge

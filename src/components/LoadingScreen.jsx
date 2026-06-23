@@ -33,7 +33,7 @@ export default function LoadingScreen({ visible }) {
             style={{
               width: 18,
               height: 18,
-              background: '#fff',
+              background: 'rgb(226, 230, 236)',
               animation: 'sq 1s ease-in-out infinite',
               animationDelay: `${i * 0.25}s`, // 1s / 4 → evenly spaced so the chase loops seamlessly
             }}
