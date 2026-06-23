@@ -82,6 +82,7 @@
         transition: opacity 0.15s ease;
       }
       #overlay-close:hover { opacity: 1; }
+      html.gi-tab #overlay-close { display: none; }
 
       .logo-wrap {
         position: relative;
@@ -94,7 +95,7 @@
         left: 0;
         right: 0;
         height: 180px;
-        background: linear-gradient(to bottom, #3ba9fd 0%, #aed1ea 55%, #e2e6ec 67%, #e2e6ec 65%, transparent 100%);
+        /* background: linear-gradient(to bottom, #3ba9fd 0%, #aed1ea 55%, #e2e6ec 67%, #e2e6ec 65%, transparent 100%); */
         z-index: 0;
         pointer-events: none;
       }
@@ -107,9 +108,9 @@
         z-index: 1;
       }
     </style>
+    <script>if(new URLSearchParams(location.search).get("chrome")==="tab")document.documentElement.classList.add("gi-tab");</script>
   </head>
   <body>
-    <div class="logo-band"></div>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
     <main>
       <div class="logo-wrap">
@@ -130,5 +131,6 @@
       </section>
 
     </main>
+    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(226,230,236)'},'*')</script>
   </body>
 </html>

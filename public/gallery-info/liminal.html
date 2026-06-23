@@ -8,7 +8,7 @@
       :root {
         color-scheme: dark;
         font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: linear-gradient(180deg, rgba(22, 28, 40, 0.98), rgba(14, 18, 28, 0.99));
+        background: linear-gradient(180deg, rgb(42, 16, 3), rgb(44, 24, 11));
         color: rgba(220, 230, 248, 0.92);
       }
 
@@ -48,7 +48,7 @@
 
       h2 {
         margin: 0 0 0.55rem;
-        color: rgba(130, 180, 255, 0.85);
+        color: rgb(189, 112, 74);
         font-size: 0.9rem;
         font-weight: 700;
       }
@@ -78,7 +78,9 @@
         transition: opacity 0.15s ease;
       }
       #overlay-close:hover { opacity: 1; }
+      html.gi-tab #overlay-close { display: none; }
     </style>
+    <script>if(new URLSearchParams(location.search).get("chrome")==="tab")document.documentElement.classList.add("gi-tab");</script>
   </head>
   <body>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
@@ -107,5 +109,6 @@
         <p>rooms/Liminal.jsx: reemplaza el mesh por tu composición o importa desde /public.</p>
       </section>
     </main>
+    <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(43, 20, 7)', fg:'rgb(255,255,255)'},'*')</script>
   </body>
 </html>

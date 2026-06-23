@@ -53,14 +53,51 @@ const iframeStyle = {
   background: 'transparent',
 }
 
+const TAB_WIDTH = 26
+
+const TAB_SHADOW = '0 0 5px rgba(0,0,0,0.28)'
+const TAB_SHADOW_HOVER = '0 0 7px rgba(0,0,0,0.38)'
+const TAB_DEFAULT_ACCENT = { bg: 'rgb(200,215,235)', fg: 'rgba(0,0,0,0.55)' }
+
+function makeTabBase({ bg, fg }) {
+  return {
+    position: 'fixed',
+    top: '50%',
+    left: 0,
+    zIndex: 1110,
+    width: TAB_WIDTH,
+    height: 76,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+    color: fg,
+    background: bg,
+    border: '1px solid rgba(0,0,0,0.1)',
+    borderLeft: 'none',
+    borderRadius: '0 13px 13px 0',
+    cursor: 'pointer',
+    boxShadow: TAB_SHADOW,
+    clipPath: 'inset(-12px -12px -12px 0)',
+    transition: `transform ${TRANSITION_MS}ms ${easing}, box-shadow 0.2s ease, background 0.3s ease, color 0.3s ease`,
+    willChange: 'transform',
+  }
+}
+
 export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null, onOpenControls }) {
-  const galleryInfoSrc = getGalleryInfoSrc(activePortal)
+  const isTabMode = compactWidth != null
+  const baseSrc = getGalleryInfoSrc(activePortal)
+  const galleryInfoSrc = isTabMode ? `${baseSrc}?chrome=tab` : baseSrc
   const [panelOpen, setPanelOpen] = useState(true)
-  const panelWidth = compactWidth != null ? `${compactWidth}px` : '100%'
+  const [tabAccent, setTabAccent] = useState(TAB_DEFAULT_ACCENT)
+  const panelWidth = isTabMode ? `${compactWidth}px` : '100%'
+
+  useEffect(() => { setTabAccent(TAB_DEFAULT_ACCENT) }, [galleryInfoSrc])
 
   useEffect(() => {
     const onMessage = (e) => {
       if (e.data?.type === 'overlay:close') setPanelOpen(false)
+      if (e.data?.type === 'overlay:accent') setTabAccent({ bg: e.data.bg, fg: e.data.fg ?? 'rgba(0,0,0,0.55)' })
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
@@ -113,30 +150,63 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
         />
       </div>
 
-      {!panelOpen && (
-        <>
-          <button
-            type="button"
-            onClick={() => setPanelOpen(true)}
-            style={reopenButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.boxShadow =
-                '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = ''
-              e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
+      {isTabMode && (
+        <button
+          type="button"
+          aria-label={panelOpen ? 'Cerrar información' : 'Abrir información'}
+          onClick={() => setPanelOpen((open) => !open)}
+          style={{
+            ...makeTabBase(tabAccent),
+            transform: `translate3d(${panelOpen ? compactWidth : 0}px, -50%, 0)`,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = TAB_SHADOW_HOVER }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = TAB_SHADOW }}
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              transform: panelOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+              transition: `transform ${TRANSITION_MS}ms ${easing}`,
             }}
           >
-            Info
-          </button>
+            <polyline points="14.5 6 8.5 12 14.5 18" />
+          </svg>
+        </button>
+      )}
+
+      {!panelOpen && (
+        <>
+          {!isTabMode && (
+            <button
+              type="button"
+              onClick={() => setPanelOpen(true)}
+              style={reopenButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)'
+                e.currentTarget.style.boxShadow =
+                  '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = ''
+                e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
+              }}
+            >
+              Info
+            </button>
+          )}
 
           {onOpenControls && (
             <button
               type="button"
               onClick={onOpenControls}
-              style={{ ...reopenButtonStyle, top: 72 }}
+              style={{ ...reopenButtonStyle, top: isTabMode ? 24 : 72 }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)'
                 e.currentTarget.style.boxShadow =

@@ -78,7 +78,9 @@
         transition: opacity 0.15s ease;
       }
       #overlay-close:hover { opacity: 1; }
+      html.gi-tab #overlay-close { display: none; }
     </style>
+    <script>if(new URLSearchParams(location.search).get("chrome")==="tab")document.documentElement.classList.add("gi-tab");</script>
   </head>
   <body>
     <button id="overlay-close" onclick="window.parent.postMessage({type:'overlay:close'},'*')">Cerrar</button>
@@ -110,5 +112,12 @@
         </p>
       </section>
     </main>
+    <script>
+      window.parent.postMessage({
+        type:'overlay:accent',
+        bg:'rgb(14, 29, 22)',
+        fg:'rgb(205, 230, 214)'},
+        '*')
+      </script>
   </body>
 </html>
