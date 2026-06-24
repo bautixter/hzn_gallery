@@ -45,6 +45,7 @@ export default function Painting({
   spotlight = true,
   info = null,
   hoverPop = 0.05, // metres the work eases toward the viewer on hover (0 to disable)
+  allowTilt = true, // when false, close-up only pans/zooms (no tilt-in-place rotation)
 }) {
   const texture = useTexture(src)
   const aspect = texture.image.width / texture.image.height
@@ -66,7 +67,6 @@ export default function Painting({
   const spotCastShadow = spotOpts.castShadow ?? true
 
   const groupRef = useRef()
-  const boxMatRef = useRef()
   const spotRef = useRef()
   const spotTargetRef = useRef()
   const glowRef = useRef(0)
@@ -198,9 +198,10 @@ export default function Painting({
       const pts = [...activePointers.values()]
 
       // Tilt the work: one finger on touch, middle-button drag on desktop.
-      const tilting = e.pointerType === 'touch'
+      // Disabled when allowTilt is false → a single pointer pans instead.
+      const tilting = allowTilt && (e.pointerType === 'touch'
         ? pts.length === 1
-        : (e.buttons & 4) === 4
+        : (e.buttons & 4) === 4)
 
       if (pts.length === 1 && tilting) {
         tiltRef.current.y = clamp(tiltRef.current.y + dx * TILT_SPEED, -MAX_TILT, MAX_TILT)
@@ -275,16 +276,16 @@ export default function Painting({
       overlay.removeEventListener('mousedown', onMouseDown)
       document.body.removeChild(overlay)
     }
-  }, [focused, height])
+  }, [focused, height, allowTilt])
 
   useFrame((_, delta) => {
     const g = groupRef.current
     if (!g) return
 
-    // Glow
-    const glowGoal = focused ? 0.3 : hovered ? 0.12 : 0
-    glowRef.current = MathUtils.lerp(glowRef.current, glowGoal, 0.1)
-    if (boxMatRef.current) boxMatRef.current.emissiveIntensity = glowRef.current
+    // Glow: brighten this work's spotlight on hover / focus (a fraction over its base intensity)
+    const glowGoal = focused ? 0.8 : hovered ? 0.5 : 0
+    glowRef.current = MathUtils.lerp(glowRef.current, glowGoal, 0.05)
+    if (spotRef.current) spotRef.current.intensity = spotIntensity * (1 + glowRef.current)
 
     // Info tag: reveal when the viewer looks straight at the work (and isn't focused).
     if (info) {
@@ -402,7 +403,7 @@ export default function Painting({
       )}
       <mesh>
         <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial ref={boxMatRef} color={canvasColor} emissive="#ffffff" emissiveIntensity={0} />
+        <meshStandardMaterial color={canvasColor} />
       </mesh>
       <mesh castShadow position={[0, 0, depth / 2 + 0.001]}>
         <planeGeometry args={[width, height]} />
