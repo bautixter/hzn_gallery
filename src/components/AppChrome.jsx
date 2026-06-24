@@ -1,3 +1,5 @@
+import { IconButton, HomeIcon, HelpIcon } from './IconButton'
+
 const overlayStyle = {
   position: 'fixed',
   inset: 0,
@@ -9,19 +11,14 @@ const overlayStyle = {
   justifyContent: 'center',
 }
 
-const backButtonStyle = {
+const topRightClusterStyle = {
   position: 'fixed',
-  top: 24,
-  left: 24,
-  padding: '10px 20px',
-  background: 'rgba(0,0,0,0.35)',
-  border: '1px solid rgba(255,255,255,0.25)',
-  borderRadius: 8,
-  fontSize: 15,
-  cursor: 'pointer',
-  color: 'rgba(255,255,255,0.85)',
-  backdropFilter: 'blur(6px)',
-  zIndex: 10,
+  top: 20,
+  right: 20,
+  zIndex: 1090, // below the info panel (1100): on desktop it sits beside the panel and stays
+                // visible; on mobile the full-screen panel covers it (no clash with its close button)
+  display: 'flex',
+  gap: 10,
 }
 
 const gyroButtonStyle = {
@@ -45,6 +42,7 @@ export default function AppChrome({
   showSpinner,
   activePortal,
   onBack,
+  onOpenControls,
   showGyroPrompt,
   onRequestGyro,
 }) {
@@ -87,10 +85,19 @@ export default function AppChrome({
         </div>
       )}
 
-      {activePortal !== null && (
-        <button type="button" onClick={onBack} style={backButtonStyle}>
-          ← Back
-        </button>
+      {(activePortal !== null || onOpenControls) && (
+        <div style={topRightClusterStyle}>
+          {activePortal !== null && (
+            <IconButton onClick={onBack} label="Volver al hub">
+              <HomeIcon />
+            </IconButton>
+          )}
+          {onOpenControls && (
+            <IconButton onClick={onOpenControls} label="Ayuda y controles">
+              <HelpIcon />
+            </IconButton>
+          )}
+        </div>
       )}
 
       {showGyroPrompt && (

@@ -78,7 +78,6 @@ export default function App() {
       <GalleryInfoOverlay
         activePortal={activePortal}
         compactWidth={pointerCoarse ? null : 380}
-        onOpenControls={reopenHint}
       >
         <Canvas
           camera={{
@@ -113,6 +112,7 @@ export default function App() {
         showSpinner={showSpinner}
         activePortal={activePortal}
         onBack={handleBack}
+        onOpenControls={reopenHint}
         showGyroPrompt={showGyroPrompt}
         onRequestGyro={requestPermission}
       />

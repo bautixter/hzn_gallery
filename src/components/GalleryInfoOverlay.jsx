@@ -1,29 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { getGalleryInfoSrc } from '../data/roomGalleryInfo'
+import { IconButton, InfoIcon } from './IconButton'
 
 const TRANSITION_MS = 520
 const easing = 'cubic-bezier(0.33, 1, 0.38, 1)'
-
-const reopenButtonStyle = {
-  position: 'fixed',
-  top: 24,
-  right: 24,
-  zIndex: 1110,
-  padding: '10px 18px',
-  fontSize: 14,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  fontWeight: 600,
-  color: 'rgba(255,255,255,0.92)',
-  background: 'linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06))',
-  border: '1px solid rgba(255,255,255,0.35)',
-  borderRadius: 999,
-  cursor: 'pointer',
-  backdropFilter: 'blur(10px)',
-  boxShadow:
-    '0 0 0 1px rgba(255,255,255,0.06) inset, 0 12px 32px rgba(0,0,0,0.35), 0 0 24px rgba(120, 200, 255, 0.12)',
-  transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
-}
 
 const panelShellBase = {
   position: 'fixed',
@@ -57,7 +37,9 @@ const TAB_WIDTH = 26
 
 const TAB_SHADOW = '0 0 5px rgba(0,0,0,0.28)'
 const TAB_SHADOW_HOVER = '0 0 7px rgba(0,0,0,0.38)'
-const TAB_DEFAULT_ACCENT = { bg: 'rgb(200,215,235)', fg: 'rgba(0,0,0,0.55)' }
+// Matches hub.html's accent — the overlay always opens on the hub, so this is the correct
+// first-frame colour and a safe fallback if an accent message is ever missed.
+const TAB_DEFAULT_ACCENT = { bg: 'rgb(226,230,236)', fg: 'rgba(0,0,0,0.55)' }
 
 function makeTabBase({ bg, fg }) {
   return {
@@ -84,7 +66,7 @@ function makeTabBase({ bg, fg }) {
   }
 }
 
-export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null, onOpenControls }) {
+export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null }) {
   const isTabMode = compactWidth != null
   const baseSrc = getGalleryInfoSrc(activePortal)
   const galleryInfoSrc = isTabMode ? `${baseSrc}?chrome=tab` : baseSrc
@@ -92,9 +74,11 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
   const [tabAccent, setTabAccent] = useState(TAB_DEFAULT_ACCENT)
   const panelWidth = isTabMode ? `${compactWidth}px` : '100%'
 
-  useEffect(() => { setTabAccent(TAB_DEFAULT_ACCENT) }, [galleryInfoSrc])
-
-  useEffect(() => {
+  // Registered in a layout effect (synchronous, pre-paint) so the listener is in place
+  // before the iframe can post its one-shot `overlay:accent` on load — otherwise that
+  // message can be missed and the tab stays stuck on the default colour. The tab keeps the
+  // previous room's colour until the next accent arrives (no reset → no celeste flash).
+  useLayoutEffect(() => {
     const onMessage = (e) => {
       if (e.data?.type === 'overlay:close') setPanelOpen(false)
       if (e.data?.type === 'overlay:accent') setTabAccent({ bg: e.data.bg, fg: e.data.fg ?? 'rgba(0,0,0,0.55)' })
@@ -181,46 +165,16 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
         </button>
       )}
 
-      {!panelOpen && (
-        <>
-          {!isTabMode && (
-            <button
-              type="button"
-              onClick={() => setPanelOpen(true)}
-              style={reopenButtonStyle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)'
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = ''
-                e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
-              }}
-            >
-              Info
-            </button>
-          )}
-
-          {onOpenControls && (
-            <button
-              type="button"
-              onClick={onOpenControls}
-              style={{ ...reopenButtonStyle, top: isTabMode ? 24 : 72 }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)'
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 1px rgba(255,255,255,0.1) inset, 0 16px 40px rgba(0,0,0,0.45), 0 0 32px rgba(140, 210, 255, 0.2)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = ''
-                e.currentTarget.style.boxShadow = reopenButtonStyle.boxShadow
-              }}
-            >
-              Controls
-            </button>
-          )}
-        </>
+      {/* Mobile reopen handle (desktop uses the side tab instead); kept top-left so it
+          clears the top-right home/help icon cluster in AppChrome. */}
+      {!panelOpen && !isTabMode && (
+        <IconButton
+          onClick={() => setPanelOpen(true)}
+          label="Abrir información"
+          style={{ position: 'fixed', top: 20, left: 20, zIndex: 1115 }}
+        >
+          <InfoIcon />
+        </IconButton>
       )}
     </div>
   )
