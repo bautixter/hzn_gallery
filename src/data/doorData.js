@@ -25,4 +25,12 @@ export const DOOR_DATA = [
     room: { type: 'lightAndWood' },
     galleryInfoSrc: asset('/gallery-info/light-and-wood.html'),
   },
+  {
+    header: 'Trip to Switzerland',
+    subheader: 'Santiago Meneses Gómez',
+    tags: ['photography', 'travel'],
+    description: 'Winter photographs from a trip to Switzerland: grey skies, early dark and the quiet charm of the cold.',
+    room: { type: 'switzerland' },
+    galleryInfoSrc: asset('/gallery-info/switzerland.html'),
+  },
 ]
