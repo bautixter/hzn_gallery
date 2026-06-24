@@ -19,12 +19,26 @@
         box-sizing: border-box;
       }
 
+      html, body { height: 100%; }
+
       body {
-        min-height: 100vh;
         margin: 0;
+        overflow: hidden; /* clips the child's native scrollbar (pushed out by padding-right) */
+      }
+
+      /* The child scrolls; its scrollbar is shoved past the clip edge so it never shows */
+      #scroll {
+        width: 100%;
+        height: 100%;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        box-sizing: content-box;
+        padding-right: var(--sbw, 17px);
+      }
+
+      .page {
         padding: clamp(32px, 8vw, 96px);
         line-height: 1.55;
-        overflow-x: hidden;
       }
 
       main {
@@ -121,6 +135,8 @@
   </head>
   <body>
     <button id="overlay-close" aria-label="Close" onclick="window.parent.postMessage({type:'overlay:close'},'*')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <div id="scroll">
+    <div class="page">
     <main>
       <div class="logo-wrap">
         <img src="../images/hzn_logo.svg" alt="Horizon Gallery" />
@@ -137,7 +153,7 @@
         <ul class="rooms">
           <li>
             <span class="name">Marginalia</span> <span class="artist">· Juan Bautista Aballay</span>
-            <p>Years of doodles drawn in the margins of notebooks — quick, absurd, everyday.</p>
+            <p>Years of doodles drawn in the margins of notebooks: quick, absurd, everyday.</p>
           </li>
           <li>
             <span class="name">Microfriends</span> <span class="artist">· Téo Perrier</span>
@@ -147,9 +163,25 @@
             <span class="name">Light and Wood</span> <span class="artist">· Ali Garaki Nezhad</span>
             <p>Digital paintings on how light meets matter, by a pianist and colour-science researcher.</p>
           </li>
+          <li>
+            <span class="name">Trip to Switzerland</span> <span class="artist">· Santiago Meneses Gómez</span>
+            <p>Winter photographs of a Swiss city: grey skies, early dark and the quiet charm of the cold.</p>
+          </li>
         </ul>
       </section>
     </main>
+    </div>
+    </div>
     <script>window.parent.postMessage({type:'overlay:accent',bg:'rgb(226,230,236)'},'*')</script>
+    <script>
+      // Match the clip padding to the real scrollbar width (0 on overlay scrollbars → no gap).
+      (function () {
+        const probe = document.createElement('div')
+        probe.style.cssText = 'position:absolute;top:-9999px;width:50px;height:50px;overflow:scroll'
+        document.body.appendChild(probe)
+        document.documentElement.style.setProperty('--sbw', (probe.offsetWidth - probe.clientWidth) + 'px')
+        probe.remove()
+      })()
+    </script>
   </body>
 </html>
