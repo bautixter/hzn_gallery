@@ -1,4 +1,6 @@
 import { Html } from '@react-three/drei'
+import { useXR } from '@react-three/xr'
+import CanvasInfoLabel from './CanvasInfoLabel'
 
 // Museum-placard info tag that fades in when the viewer looks at a work. Text content
 // and colour come from the per-painting `info` object (see the room's painting config):
@@ -14,8 +16,23 @@ const wrapStyle = {
 }
 
 export default function PaintingLabel({ info, visible, anchor = [0, 0, 0] }) {
+  const presenting = useXR((s) => s.session != null)
   if (!info) return null
   const color = info.color ?? 'rgba(255, 255, 255, 0.9)'
+
+  // In VR the <Html> tag is invisible, so render the same content as an in-scene label beside the work.
+  if (presenting) {
+    return (
+      <CanvasInfoLabel
+        info={info}
+        visible={visible}
+        // position: [right/left, up/down, toward you]. apparent: on-screen size (smaller = smaller).
+        position={[anchor[0] + 0.65, anchor[1] - 0.2, anchor[2]]}
+        maxWidth={0.6}
+        apparent={0.32}
+      />
+    )
+  }
 
   return (
     <Html

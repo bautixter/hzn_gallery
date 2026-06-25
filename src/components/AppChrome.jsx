@@ -45,6 +45,7 @@ export default function AppChrome({
   onOpenControls,
   showGyroPrompt,
   onRequestGyro,
+  hideControls = false,
 }) {
   return (
     <>
@@ -85,7 +86,7 @@ export default function AppChrome({
         </div>
       )}
 
-      {(activePortal !== null || onOpenControls) && (
+      {!hideControls && (activePortal !== null || onOpenControls) && (
         <div style={topRightClusterStyle}>
           {activePortal !== null && (
             <IconButton onClick={onBack} label="Volver al hub">
@@ -100,7 +101,7 @@ export default function AppChrome({
         </div>
       )}
 
-      {showGyroPrompt && (
+      {!hideControls && showGyroPrompt && (
         <button type="button" onClick={onRequestGyro} style={gyroButtonStyle}>
           Enable gyroscope
         </button>

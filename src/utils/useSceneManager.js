@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useProgress } from '@react-three/drei'
+import { xrStore } from '../xr/xrStore'
 
 const FADE_MS = 400
 const SPINNER_THRESHOLD_MS = 600
@@ -44,6 +45,14 @@ export function useSceneManager() {
     timerIds.current.forEach(clearTimeout)
     timerIds.current = []
 
+    // Immersive XR freezes window.requestAnimationFrame (only the headset's frame loop runs) and the
+    // DOM fade overlay isn't visible in the headset, so the normal choreography never completes and the
+    // scene never swaps. Apply the change directly instead.
+    if (xrStore.getState().session != null) {
+      action()
+      return
+    }
+
     pendingRef.current = action
     setOverlayOpacity(0)
 
@@ -77,7 +86,12 @@ export function useSceneManager() {
   const handleBack = useCallback(() => {
     const snap = doorSnapshotRef.current
     const cur = activePortalRef.current
-    if (snap && cur !== null && snap.portalIndex === cur) {
+    // The exit choreography slides/closes the door back into the hub using the camera position
+    // captured on entry. In an XR session that position is stale (the headset drives the camera, only
+    // matrixWorld updates), so the door animates from the hub centre and sweeps across the whole view
+    // -- hiding the sky -- until it lands on the ring. Skip it in VR and just return to the hub.
+    const presenting = xrStore.getState().session != null
+    if (!presenting && snap && cur !== null && snap.portalIndex === cur) {
       triggerTransition(() => {
         setExitChoreography({ snapshot: snap })
         setActivePortal(null)

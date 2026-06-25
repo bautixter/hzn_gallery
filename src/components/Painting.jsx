@@ -1,9 +1,11 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useTexture } from '@react-three/drei'
 import { Vector3, Quaternion, Euler, MathUtils } from 'three'
 import { useControlsHint } from '../contexts/ControlsHintContext'
 import { useFocusRegistry } from '../contexts/FocusContext'
+import { useXRNav } from '../contexts/XRNavContext'
+import { computeStandPose } from '../utils/xrStand'
 import { SHOW_THRESHOLD } from '../config'
 import PaintingLabel from './PaintingLabel'
 
@@ -34,6 +36,8 @@ const _targetQuat = new Quaternion()
 const _eye = new Vector3()      // camera world position (gaze test)
 const _toWork = new Vector3()   // camera → work direction
 const _camFwd = new Vector3()   // camera world forward
+const _standQuat = new Quaternion() // VR: work world orientation (stand-side fallback)
+const _standNormal = new Vector3()  // VR: work face normal in world space
 
 export default function Painting({
   src,
@@ -88,7 +92,26 @@ export default function Painting({
   const { camera } = useThree()
   const { showIfUnseen, setCurrentPage } = useControlsHint()
   const { acquireFocus, releaseFocus, isAnyFocused } = useFocusRegistry()
+  const xrNav = useXRNav()
+  const workId = useMemo(() => Symbol('painting'), [])
   const focusHeld = useRef(false)
+
+  // Selecting a work: in VR, blink-teleport the viewer in front of it (no camera fly-in, no
+  // close-up overlay). On desktop / touch, toggle the eased close-up focus as before.
+  const handleSelect = (e) => {
+    e.stopPropagation()
+    if (xrNav?.isPresenting && xrNav.navRef.current) {
+      const g = groupRef.current
+      if (!g) return
+      g.getWorldQuaternion(_standQuat)
+      _standNormal.set(0, 0, 1).applyQuaternion(_standQuat)
+      const dist = clamp(Math.max(width, height) * 1.5, 1.1, 4)
+      const pose = computeStandPose(g, camera, dist, _standNormal)
+      xrNav.navRef.current.teleportToWork(workId, pose.position, pose.yaw)
+      return
+    }
+    setFocused((f) => !f)
+  }
 
   // Count this work in the shared registry from the moment it takes the camera until the
   // fly-back has fully landed (released in useFrame), so other works' gaze tags don't
@@ -377,7 +400,7 @@ export default function Painting({
       ref={groupRef}
       position={position}
       rotation={rotation}
-      onClick={(e) => { e.stopPropagation(); setFocused(f => !f) }}
+      onClick={handleSelect}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >

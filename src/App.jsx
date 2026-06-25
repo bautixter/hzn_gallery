@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { XR } from '@react-three/xr'
 import Hub from './rooms/Hub'
 import CanvasControls from './components/CanvasControls'
 import AppChrome from './components/AppChrome'
 import GalleryInfoOverlay from './components/GalleryInfoOverlay'
 import LoadingScreen from './components/LoadingScreen'
 import ControlsOverlay from './components/ControlsOverlay'
+import VRButton from './components/VRButton'
+import XRRig from './components/XRRig'
 import { ControlsHintContext } from './contexts/ControlsHintContext'
 import { FocusContext } from './contexts/FocusContext'
+import { XRNavContext } from './contexts/XRNavContext'
 import { useControlsHintState } from './hooks/useControlsHintState'
 import { DEFAULT_FOV, DESKTOP_FOV, EYE_HEIGHT, getHubCameraYawTowardDoor } from './config/camera'
 import { useDeviceOrientation } from './hooks/useDeviceOrientation'
 import { usePointerCoarse } from './hooks/usePointerCoarse'
 import { useSceneManager } from './utils/useSceneManager'
+import { xrStore } from './xr/xrStore'
 
 function FirstFrameNotifier({ onReady }) {
   const fired = useRef(false)
@@ -57,6 +62,15 @@ export default function App() {
   const pointerCoarse = usePointerCoarse()
   const fov = pointerCoarse ? DEFAULT_FOV : DESKTOP_FOV
 
+  // VR session state + the bridge the works use to blink-teleport instead of flying the camera.
+  const [isPresenting, setIsPresenting] = useState(false)
+  const xrNavRef = useRef(null)
+  useEffect(() => {
+    setIsPresenting(xrStore.getState().session != null)
+    return xrStore.subscribe((state) => setIsPresenting(state.session != null))
+  }, [])
+  const xrNav = useMemo(() => ({ isPresenting, navRef: xrNavRef }), [isPresenting])
+
   // Shared close-up focus registry: any work in view mode hides every other work's info tag.
   const focusCount = useRef(0)
   const focusRegistry = useMemo(() => ({
@@ -73,11 +87,13 @@ export default function App() {
   return (
     <ControlsHintContext.Provider value={{ showIfUnseen, setCurrentPage }}>
      <FocusContext.Provider value={focusRegistry}>
-      <LoadingScreen visible={!loaded} />
-      <ControlsOverlay page={currentPage} visible={hintVisible} onDismiss={dismissHint} />
+      <XRNavContext.Provider value={xrNav}>
+      <LoadingScreen visible={!loaded && !isPresenting} />
+      <ControlsOverlay page={currentPage} visible={hintVisible && !isPresenting} onDismiss={dismissHint} />
       <GalleryInfoOverlay
         activePortal={activePortal}
         compactWidth={pointerCoarse ? null : 380}
+        hidden={isPresenting}
       >
         <Canvas
           camera={{
@@ -89,20 +105,25 @@ export default function App() {
           shadows
           gl={{ antialias: true }}
         >
-          <FirstFrameNotifier onReady={() => setLoaded(true)} />
-          <CameraFovSync fov={fov} />
-          <Hub
-            activePortal={activePortal}
-            onActivate={handleActivate}
-            exitChoreography={exitChoreography}
-            onDoorInteractionFreeze={registerDoorInteractionFreeze}
-            onExitReverseComplete={onExitReverseComplete}
-          />
-          <CanvasControls
-            pointerCoarse={pointerCoarse}
-            granted={granted}
-            exitCameraSnapshot={exitChoreography?.snapshot ?? null}
-          />
+          <XR store={xrStore}>
+            <FirstFrameNotifier onReady={() => setLoaded(true)} />
+            <CameraFovSync fov={fov} />
+            <XRRig navRef={xrNavRef} roomKey={activePortal} onExit={handleBack} />
+            <Hub
+              activePortal={activePortal}
+              onActivate={handleActivate}
+              exitChoreography={exitChoreography}
+              onDoorInteractionFreeze={registerDoorInteractionFreeze}
+              onExitReverseComplete={onExitReverseComplete}
+            />
+            {!isPresenting && (
+              <CanvasControls
+                pointerCoarse={pointerCoarse}
+                granted={granted}
+                exitCameraSnapshot={exitChoreography?.snapshot ?? null}
+              />
+            )}
+          </XR>
         </Canvas>
       </GalleryInfoOverlay>
 
@@ -115,7 +136,10 @@ export default function App() {
         onOpenControls={reopenHint}
         showGyroPrompt={showGyroPrompt}
         onRequestGyro={requestPermission}
+        hideControls={isPresenting}
       />
+      <VRButton hidden={isPresenting} />
+     </XRNavContext.Provider>
      </FocusContext.Provider>
     </ControlsHintContext.Provider>
   )

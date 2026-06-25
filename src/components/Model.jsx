@@ -4,6 +4,8 @@ import { useGLTF } from '@react-three/drei'
 import { Vector3, Quaternion, Matrix4, Box3, MathUtils } from 'three'
 import { useControlsHint } from '../contexts/ControlsHintContext'
 import { useFocusRegistry } from '../contexts/FocusContext'
+import { useXRNav } from '../contexts/XRNavContext'
+import { computeStandPose } from '../utils/xrStand'
 import { SHOW_THRESHOLD } from '../config'
 import PaintingLabel from './PaintingLabel'
 
@@ -94,7 +96,24 @@ export default function Model({
   const { camera } = useThree()
   const { showIfUnseen, setCurrentPage } = useControlsHint()
   const { acquireFocus, releaseFocus, isAnyFocused } = useFocusRegistry()
+  const xrNav = useXRNav()
+  const workId = useMemo(() => Symbol('model'), [])
   const focusHeld = useRef(false)
+
+  // Selecting a work: in VR, blink-teleport the viewer to a comfortable distance in front of the
+  // model (no orbit camera, no overlay). On desktop / touch, toggle the eased orbit focus.
+  const handleSelect = (e) => {
+    e.stopPropagation()
+    if (xrNav?.isPresenting && xrNav.navRef.current) {
+      const g = groupRef.current
+      if (!g) return
+      const dist = clamp(radius * 3, 1.1, 4)
+      const pose = computeStandPose(g, camera, dist)
+      xrNav.navRef.current.teleportToWork(workId, pose.position, pose.yaw)
+      return
+    }
+    setFocused((f) => !f)
+  }
 
   // Count this work in the shared registry from the moment it takes the camera until the
   // fly-back has fully landed (released in useFrame), so other works' gaze tags don't
@@ -313,7 +332,7 @@ export default function Model({
       ref={groupRef}
       position={position}
       rotation={rotation}
-      onClick={(e) => { e.stopPropagation(); setFocused(f => !f) }}
+      onClick={handleSelect}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >

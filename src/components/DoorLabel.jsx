@@ -1,4 +1,6 @@
 import { Html } from '@react-three/drei'
+import { useXR } from '@react-three/xr'
+import CanvasInfoLabel from './CanvasInfoLabel'
 
 const htmlStyle = {
   width: 220,
@@ -48,6 +50,21 @@ const descriptionStyle = {
 }
 
 export default function DoorLabel({ data, visible }) {
+  const presenting = useXR((s) => s.session != null)
+
+  // In VR the <Html> placard is invisible, so render the same content as an in-scene label.
+  if (presenting) {
+    return (
+      <CanvasInfoLabel
+        info={{ ...data, color: 'rgb(12,38,92)' }}
+        visible={visible}
+        position={[1.5, 2.15, 0]}
+        maxWidth={0.95}
+        apparent={0.3}
+      />
+    )
+  }
+
   return (
     <Html
       position={[0.8, 2.5, 0]}

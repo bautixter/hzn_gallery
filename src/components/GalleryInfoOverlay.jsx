@@ -66,7 +66,7 @@ function makeTabBase({ bg, fg }) {
   }
 }
 
-export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null }) {
+export default function GalleryInfoOverlay({ activePortal, children, compactWidth = null, hidden = false }) {
   const isTabMode = compactWidth != null
   const baseSrc = getGalleryInfoSrc(activePortal)
   const galleryInfoSrc = isTabMode ? `${baseSrc}?chrome=tab` : baseSrc
@@ -116,6 +116,9 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
         {children}
       </div>
 
+      {/* In VR the headset shows only the 3D scene, so the DOM info panel and its handles are
+          suppressed entirely while presenting. */}
+      {!hidden && (
       <div
         role="dialog"
         aria-modal={panelOpen}
@@ -133,8 +136,9 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
           style={iframeStyle}
         />
       </div>
+      )}
 
-      {isTabMode && (
+      {!hidden && isTabMode && (
         <button
           type="button"
           aria-label={panelOpen ? 'Cerrar información' : 'Abrir información'}
@@ -167,7 +171,7 @@ export default function GalleryInfoOverlay({ activePortal, children, compactWidt
 
       {/* Mobile reopen handle (desktop uses the side tab instead); kept top-left so it
           clears the top-right home/help icon cluster in AppChrome. */}
-      {!panelOpen && !isTabMode && (
+      {!hidden && !panelOpen && !isTabMode && (
         <IconButton
           onClick={() => setPanelOpen(true)}
           label="Abrir información"
